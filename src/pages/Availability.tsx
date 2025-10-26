@@ -5,6 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Clock, MapPin, Phone, Calendar, Save } from "lucide-react";
@@ -12,9 +14,12 @@ import { z } from "zod";
 
 const availabilitySchema = z.object({
   phone_number: z.string().trim().min(5, "Telefonnummer muss mindestens 5 Zeichen lang sein").max(20, "Telefonnummer darf maximal 20 Zeichen lang sein"),
-  date: z.string().nonempty("Datum wird benötigt"),
+  date: z.string().nonempty("Startdatum wird benötigt"),
+  end_date: z.string().nonempty("Enddatum wird benötigt"),
   start_time: z.string().nonempty("Startzeit wird benötigt"),
   end_time: z.string().nonempty("Endzeit wird benötigt"),
+  shift_type: z.string().optional(),
+  weekdays: z.string().optional(),
   location: z.string().trim().nonempty("Standort wird benötigt").max(200, "Standort darf maximal 200 Zeichen lang sein"),
   notes: z.string().max(500, "Bemerkung darf maximal 500 Zeichen lang sein").optional(),
 });
@@ -23,14 +28,28 @@ const Availability = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [existingEntry, setExistingEntry] = useState<any>(null);
+  const [selectedWeekdays, setSelectedWeekdays] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     phone_number: "",
     date: "",
+    end_date: "",
     start_time: "",
     end_time: "",
+    shift_type: "",
+    weekdays: "",
     location: "",
     notes: "",
   });
+
+  const weekdayOptions = [
+    { value: "Montag", label: "Montag" },
+    { value: "Dienstag", label: "Dienstag" },
+    { value: "Mittwoch", label: "Mittwoch" },
+    { value: "Donnerstag", label: "Donnerstag" },
+    { value: "Freitag", label: "Freitag" },
+    { value: "Samstag", label: "Samstag" },
+    { value: "Sonntag", label: "Sonntag" },
+  ];
 
   const checkExistingEntry = async (phoneNumber: string) => {
     try {
@@ -44,11 +63,16 @@ const Availability = () => {
       
       if (data) {
         setExistingEntry(data);
+        const weekdaysArray = data.weekdays ? data.weekdays.split(", ") : [];
+        setSelectedWeekdays(weekdaysArray);
         setFormData({
           phone_number: data.phone_number,
           date: data.date,
+          end_date: data.end_date || data.date,
           start_time: data.start_time,
           end_time: data.end_time,
+          shift_type: data.shift_type || "",
+          weekdays: data.weekdays || "",
           location: data.location,
           notes: data.notes || "",
         });
@@ -65,6 +89,16 @@ const Availability = () => {
     }
   };
 
+  const handleWeekdayToggle = (day: string) => {
+    setSelectedWeekdays((prev) => {
+      const newSelection = prev.includes(day)
+        ? prev.filter((d) => d !== day)
+        : [...prev, day];
+      setFormData({ ...formData, weekdays: newSelection.join(", ") });
+      return newSelection;
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -77,8 +111,11 @@ const Availability = () => {
           .from("availability")
           .update({
             date: validated.date,
+            end_date: validated.end_date,
             start_time: validated.start_time,
             end_time: validated.end_time,
+            shift_type: validated.shift_type || null,
+            weekdays: validated.weekdays || null,
             location: validated.location,
             notes: validated.notes || null,
           })
@@ -92,8 +129,11 @@ const Availability = () => {
           .insert([{
             phone_number: validated.phone_number,
             date: validated.date,
+            end_date: validated.end_date,
             start_time: validated.start_time,
             end_time: validated.end_time,
+            shift_type: validated.shift_type || null,
+            weekdays: validated.weekdays || null,
             location: validated.location,
             notes: validated.notes || null,
           }]);
@@ -162,18 +202,89 @@ const Availability = () => {
               />
             </div>
 
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="date" className="text-foreground flex items-center">
+                  <Calendar className="w-4 h-4 mr-2 text-primary" />
+                  Von Datum *
+                </Label>
+                <Input
+                  id="date"
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  className="bg-muted border-border text-foreground"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="end_date" className="text-foreground flex items-center">
+                  <Calendar className="w-4 h-4 mr-2 text-primary" />
+                  Bis Datum *
+                </Label>
+                <Input
+                  id="end_date"
+                  type="date"
+                  value={formData.end_date}
+                  onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                  className="bg-muted border-border text-foreground"
+                  required
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label htmlFor="date" className="text-foreground flex items-center">
-                <Calendar className="w-4 h-4 mr-2 text-primary" />
-                Datum *
+              <Label htmlFor="shift_type" className="text-foreground flex items-center">
+                <Clock className="w-4 h-4 mr-2 text-primary" />
+                Schichttyp
               </Label>
+              <Select
+                value={formData.shift_type}
+                onValueChange={(value) => setFormData({ ...formData, shift_type: value })}
+              >
+                <SelectTrigger className="bg-muted border-border text-foreground">
+                  <SelectValue placeholder="Schichttyp auswählen" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Tagschicht">Tagschicht</SelectItem>
+                  <SelectItem value="Nachtschicht">Nachtschicht</SelectItem>
+                  <SelectItem value="Wochenende">Wochenende</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-3">
+              <Label className="text-foreground flex items-center">
+                <Calendar className="w-4 h-4 mr-2 text-primary" />
+                Wochentage
+              </Label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {weekdayOptions.map((day) => (
+                  <div key={day.value} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={day.value}
+                      checked={selectedWeekdays.includes(day.value)}
+                      onCheckedChange={() => handleWeekdayToggle(day.value)}
+                      className="border-border"
+                    />
+                    <Label
+                      htmlFor={day.value}
+                      className="text-sm font-normal cursor-pointer text-foreground"
+                    >
+                      {day.label}
+                    </Label>
+                  </div>
+                ))}
+              </div>
               <Input
-                id="date"
-                type="date"
-                value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                className="bg-muted border-border text-foreground"
-                required
+                placeholder="Oder individuell eingeben (z.B. 'diese Woche Freitag')"
+                value={formData.weekdays}
+                onChange={(e) => {
+                  setFormData({ ...formData, weekdays: e.target.value });
+                  setSelectedWeekdays([]);
+                }}
+                className="bg-muted border-border text-foreground mt-2"
               />
             </div>
 

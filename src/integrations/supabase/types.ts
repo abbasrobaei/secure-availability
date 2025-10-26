@@ -18,35 +18,44 @@ export type Database = {
         Row: {
           created_at: string | null
           date: string
+          end_date: string | null
           end_time: string
           id: string
           location: string
           notes: string | null
           phone_number: string
+          shift_type: string | null
           start_time: string
           updated_at: string | null
+          weekdays: string | null
         }
         Insert: {
           created_at?: string | null
           date: string
+          end_date?: string | null
           end_time: string
           id?: string
           location: string
           notes?: string | null
           phone_number: string
+          shift_type?: string | null
           start_time: string
           updated_at?: string | null
+          weekdays?: string | null
         }
         Update: {
           created_at?: string | null
           date?: string
+          end_date?: string | null
           end_time?: string
           id?: string
           location?: string
           notes?: string | null
           phone_number?: string
+          shift_type?: string | null
           start_time?: string
           updated_at?: string | null
+          weekdays?: string | null
         }
         Relationships: []
       }
