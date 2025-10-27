@@ -20,7 +20,9 @@ export type Database = {
           date: string
           end_date: string | null
           end_time: string
+          first_name: string
           id: string
+          last_name: string
           location: string
           notes: string | null
           phone_number: string
@@ -34,7 +36,9 @@ export type Database = {
           date: string
           end_date?: string | null
           end_time: string
+          first_name?: string
           id?: string
+          last_name?: string
           location: string
           notes?: string | null
           phone_number: string
@@ -48,7 +52,9 @@ export type Database = {
           date?: string
           end_date?: string | null
           end_time?: string
+          first_name?: string
           id?: string
+          last_name?: string
           location?: string
           notes?: string | null
           phone_number?: string

@@ -2,24 +2,36 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Shield, Clock, UserCheck, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted">
       <div className="container mx-auto px-4 py-16">
+        <div className="absolute top-4 right-4">
+          <LanguageSwitcher />
+        </div>
+        
         <div className="text-center mb-16 space-y-6">
           <div className="flex justify-center mb-6">
             <div className="p-4 bg-primary/10 rounded-2xl shadow-[var(--shadow-glow)]">
               <Shield className="w-16 h-16 text-primary" />
             </div>
           </div>
-          <h1 className="text-5xl md:text-6xl font-bold text-foreground tracking-tight">
-            SecureWork
-          </h1>
+          <a 
+            href="https://parsec-sicherheitsdienst.de/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-5xl md:text-6xl font-bold text-foreground tracking-tight hover:text-primary transition-colors inline-block"
+          >
+            {t("companyName")}
+          </a>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Professionelles Verfügbarkeitsmanagement für Sicherheitsmitarbeiter
+            {t("hero.subtitle")}
           </p>
         </div>
 
@@ -29,9 +41,9 @@ const Index = () => {
               <div className="p-4 bg-primary/10 rounded-xl">
                 <Clock className="w-12 h-12 text-primary" />
               </div>
-              <h2 className="text-2xl font-bold text-foreground">Verfügbarkeit eintragen</h2>
+              <h2 className="text-2xl font-bold text-foreground">{t("hero.title")}</h2>
               <p className="text-muted-foreground">
-                Teilen Sie Ihre Arbeitszeiten schnell und unkompliziert mit – nur Ihre Telefonnummer wird benötigt.
+                {t("hero.subtitle")}
               </p>
               <Button 
                 size="lg" 
@@ -39,7 +51,7 @@ const Index = () => {
                 onClick={() => navigate("/availability")}
               >
                 <UserCheck className="mr-2 h-5 w-5" />
-                Verfügbarkeit eingeben
+                {t("hero.title")}
               </Button>
             </div>
           </Card>
@@ -49,7 +61,7 @@ const Index = () => {
               <div className="p-4 bg-secondary/10 rounded-xl">
                 <Lock className="w-12 h-12 text-secondary" />
               </div>
-              <h2 className="text-2xl font-bold text-foreground">Admin-Bereich</h2>
+              <h2 className="text-2xl font-bold text-foreground">{t("admin.title")}</h2>
               <p className="text-muted-foreground">
                 Verwalten Sie alle Verfügbarkeiten zentral – mit Filteroptionen und Export-Funktionen.
               </p>

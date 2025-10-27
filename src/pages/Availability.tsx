@@ -9,27 +9,34 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Clock, MapPin, Phone, Calendar, Save } from "lucide-react";
+import { ArrowLeft, Clock, MapPin, Phone, Calendar, Save, User } from "lucide-react";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 const availabilitySchema = z.object({
-  phone_number: z.string().trim().min(5, "Telefonnummer muss mindestens 5 Zeichen lang sein").max(20, "Telefonnummer darf maximal 20 Zeichen lang sein"),
-  date: z.string().nonempty("Startdatum wird benötigt"),
-  end_date: z.string().nonempty("Enddatum wird benötigt"),
-  start_time: z.string().nonempty("Startzeit wird benötigt"),
-  end_time: z.string().nonempty("Endzeit wird benötigt"),
+  first_name: z.string().trim().min(1, "toast.firstNameRequired").max(100, "First name too long"),
+  last_name: z.string().trim().min(1, "toast.lastNameRequired").max(100, "Last name too long"),
+  phone_number: z.string().trim().min(5, "toast.phoneRequired").max(20, "Phone number too long"),
+  date: z.string().nonempty("toast.dateRequired"),
+  end_date: z.string().nonempty("toast.endDateRequired"),
+  start_time: z.string().nonempty("toast.startTimeRequired"),
+  end_time: z.string().nonempty("toast.endTimeRequired"),
   shift_type: z.string().optional(),
   weekdays: z.string().optional(),
-  location: z.string().trim().nonempty("Standort wird benötigt").max(200, "Standort darf maximal 200 Zeichen lang sein"),
-  notes: z.string().max(500, "Bemerkung darf maximal 500 Zeichen lang sein").optional(),
+  location: z.string().trim().nonempty("toast.locationRequired").max(200, "Location too long"),
+  notes: z.string().max(500, "Notes too long").optional(),
 });
 
 const Availability = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [existingEntry, setExistingEntry] = useState<any>(null);
   const [selectedWeekdays, setSelectedWeekdays] = useState<string[]>([]);
   const [formData, setFormData] = useState({
+    first_name: "",
+    last_name: "",
     phone_number: "",
     date: "",
     end_date: "",
@@ -42,13 +49,13 @@ const Availability = () => {
   });
 
   const weekdayOptions = [
-    { value: "Montag", label: "Montag" },
-    { value: "Dienstag", label: "Dienstag" },
-    { value: "Mittwoch", label: "Mittwoch" },
-    { value: "Donnerstag", label: "Donnerstag" },
-    { value: "Freitag", label: "Freitag" },
-    { value: "Samstag", label: "Samstag" },
-    { value: "Sonntag", label: "Sonntag" },
+    { value: "monday", label: t("days.monday") },
+    { value: "tuesday", label: t("days.tuesday") },
+    { value: "wednesday", label: t("days.wednesday") },
+    { value: "thursday", label: t("days.thursday") },
+    { value: "friday", label: t("days.friday") },
+    { value: "saturday", label: t("days.saturday") },
+    { value: "sunday", label: t("days.sunday") },
   ];
 
   const checkExistingEntry = async (phoneNumber: string) => {
@@ -66,6 +73,8 @@ const Availability = () => {
         const weekdaysArray = data.weekdays ? data.weekdays.split(", ") : [];
         setSelectedWeekdays(weekdaysArray);
         setFormData({
+          first_name: data.first_name || "",
+          last_name: data.last_name || "",
           phone_number: data.phone_number,
           date: data.date,
           end_date: data.end_date || data.date,
@@ -76,7 +85,7 @@ const Availability = () => {
           location: data.location,
           notes: data.notes || "",
         });
-        toast.info("Es existiert bereits eine Verfügbarkeit mit dieser Telefonnummer. Sie können sie jetzt ändern.");
+        toast.info(t("toast.existingEntry"));
       }
     } catch (error) {
       console.error("Error checking existing entry:", error);
@@ -110,6 +119,8 @@ const Availability = () => {
         const { error } = await supabase
           .from("availability")
           .update({
+            first_name: validated.first_name,
+            last_name: validated.last_name,
             date: validated.date,
             end_date: validated.end_date,
             start_time: validated.start_time,
@@ -122,11 +133,13 @@ const Availability = () => {
           .eq("id", existingEntry.id);
 
         if (error) throw error;
-        toast.success("Verfügbarkeit erfolgreich aktualisiert!");
+        toast.success(t("toast.updateSuccess"));
       } else {
         const { error } = await supabase
           .from("availability")
           .insert([{
+            first_name: validated.first_name,
+            last_name: validated.last_name,
             phone_number: validated.phone_number,
             date: validated.date,
             end_date: validated.end_date,
@@ -139,18 +152,18 @@ const Availability = () => {
           }]);
 
         if (error) throw error;
-        toast.success("Verfügbarkeit erfolgreich gespeichert!");
+        toast.success(t("toast.saveSuccess"));
       }
 
       setTimeout(() => navigate("/"), 1500);
     } catch (error) {
       if (error instanceof z.ZodError) {
         error.errors.forEach((err) => {
-          toast.error(err.message);
+          toast.error(t(err.message));
         });
       } else {
         console.error("Error saving availability:", error);
-        toast.error("Fehler beim Speichern der Verfügbarkeit");
+        toast.error(t("toast.saveError"));
       }
     } finally {
       setLoading(false);
@@ -160,14 +173,17 @@ const Availability = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted py-12 px-4">
       <div className="container max-w-2xl mx-auto">
-        <Button
-          variant="ghost"
-          className="mb-6 text-muted-foreground hover:text-foreground"
-          onClick={() => navigate("/")}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Zurück
-        </Button>
+        <div className="flex justify-between items-center mb-6">
+          <Button
+            variant="ghost"
+            className="text-muted-foreground hover:text-foreground"
+            onClick={() => navigate("/")}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            {t("form.back")}
+          </Button>
+          <LanguageSwitcher />
+        </div>
 
         <Card className="p-8 bg-card border-border shadow-[var(--shadow-card)]">
           <div className="text-center mb-8">
@@ -177,18 +193,52 @@ const Availability = () => {
               </div>
             </div>
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              Verfügbarkeit eintragen
+              {t("hero.title")}
             </h1>
             <p className="text-muted-foreground">
-              Teilen Sie uns Ihre verfügbaren Arbeitszeiten mit
+              {t("hero.subtitle")}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="first_name" className="text-foreground flex items-center">
+                  <User className="w-4 h-4 mr-2 text-primary" />
+                  {t("form.firstName")} *
+                </Label>
+                <Input
+                  id="first_name"
+                  type="text"
+                  placeholder={t("form.firstName")}
+                  value={formData.first_name}
+                  onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                  className="bg-muted border-border text-foreground"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="last_name" className="text-foreground flex items-center">
+                  <User className="w-4 h-4 mr-2 text-primary" />
+                  {t("form.lastName")} *
+                </Label>
+                <Input
+                  id="last_name"
+                  type="text"
+                  placeholder={t("form.lastName")}
+                  value={formData.last_name}
+                  onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                  className="bg-muted border-border text-foreground"
+                  required
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="phone_number" className="text-foreground flex items-center">
                 <Phone className="w-4 h-4 mr-2 text-primary" />
-                Telefonnummer *
+                {t("form.phoneNumber")} *
               </Label>
               <Input
                 id="phone_number"
@@ -206,7 +256,7 @@ const Availability = () => {
               <div className="space-y-2">
                 <Label htmlFor="date" className="text-foreground flex items-center">
                   <Calendar className="w-4 h-4 mr-2 text-primary" />
-                  Von Datum *
+                  {t("form.fromDate")} *
                 </Label>
                 <Input
                   id="date"
@@ -221,7 +271,7 @@ const Availability = () => {
               <div className="space-y-2">
                 <Label htmlFor="end_date" className="text-foreground flex items-center">
                   <Calendar className="w-4 h-4 mr-2 text-primary" />
-                  Bis Datum *
+                  {t("form.toDate")} *
                 </Label>
                 <Input
                   id="end_date"
@@ -237,19 +287,20 @@ const Availability = () => {
             <div className="space-y-2">
               <Label htmlFor="shift_type" className="text-foreground flex items-center">
                 <Clock className="w-4 h-4 mr-2 text-primary" />
-                Schichttyp
+                {t("form.shiftType")}
               </Label>
               <Select
                 value={formData.shift_type}
                 onValueChange={(value) => setFormData({ ...formData, shift_type: value })}
               >
                 <SelectTrigger className="bg-muted border-border text-foreground">
-                  <SelectValue placeholder="Schichttyp auswählen" />
+                  <SelectValue placeholder={t("form.selectShiftType")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Tagschicht">Tagschicht</SelectItem>
-                  <SelectItem value="Nachtschicht">Nachtschicht</SelectItem>
-                  <SelectItem value="Wochenende">Wochenende</SelectItem>
+                  <SelectItem value="dayShift">{t("form.dayShift")}</SelectItem>
+                  <SelectItem value="nightShift">{t("form.nightShift")}</SelectItem>
+                  <SelectItem value="weekend">{t("form.weekend")}</SelectItem>
+                  <SelectItem value="allShifts">{t("form.allShifts")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -257,7 +308,7 @@ const Availability = () => {
             <div className="space-y-3">
               <Label className="text-foreground flex items-center">
                 <Calendar className="w-4 h-4 mr-2 text-primary" />
-                Wochentage
+                {t("form.weekdays")}
               </Label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {weekdayOptions.map((day) => (
@@ -278,7 +329,7 @@ const Availability = () => {
                 ))}
               </div>
               <Input
-                placeholder="Oder individuell eingeben (z.B. 'diese Woche Freitag')"
+                placeholder={t("form.customWeekdays")}
                 value={formData.weekdays}
                 onChange={(e) => {
                   setFormData({ ...formData, weekdays: e.target.value });
@@ -292,7 +343,7 @@ const Availability = () => {
               <div className="space-y-2">
                 <Label htmlFor="start_time" className="text-foreground flex items-center">
                   <Clock className="w-4 h-4 mr-2 text-primary" />
-                  Startzeit *
+                  {t("form.startTime")} *
                 </Label>
                 <Input
                   id="start_time"
@@ -307,7 +358,7 @@ const Availability = () => {
               <div className="space-y-2">
                 <Label htmlFor="end_time" className="text-foreground flex items-center">
                   <Clock className="w-4 h-4 mr-2 text-primary" />
-                  Endzeit *
+                  {t("form.endTime")} *
                 </Label>
                 <Input
                   id="end_time"
@@ -323,12 +374,12 @@ const Availability = () => {
             <div className="space-y-2">
               <Label htmlFor="location" className="text-foreground flex items-center">
                 <MapPin className="w-4 h-4 mr-2 text-primary" />
-                Standort *
+                {t("form.location")} *
               </Label>
               <Input
                 id="location"
                 type="text"
-                placeholder="z.B. Berlin Mitte"
+                placeholder={t("form.locationPlaceholder")}
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 className="bg-muted border-border text-foreground"
@@ -338,11 +389,11 @@ const Availability = () => {
 
             <div className="space-y-2">
               <Label htmlFor="notes" className="text-foreground">
-                Bemerkung (optional)
+                {t("form.notes")}
               </Label>
               <Textarea
                 id="notes"
-                placeholder="Zusätzliche Informationen..."
+                placeholder={t("form.notesPlaceholder")}
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 className="bg-muted border-border text-foreground min-h-24"
@@ -356,7 +407,7 @@ const Availability = () => {
               size="lg"
             >
               <Save className="mr-2 h-5 w-5" />
-              {existingEntry ? "Verfügbarkeit aktualisieren" : "Verfügbarkeit speichern"}
+              {existingEntry ? t("form.update") : t("form.save")}
             </Button>
           </form>
         </Card>
