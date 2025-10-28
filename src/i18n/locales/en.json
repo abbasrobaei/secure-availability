@@ -1,8 +1,8 @@
 {
   "companyName": "Parsec Security Services GmbH",
   "hero": {
-    "title": "Enter Availability",
-    "subtitle": "Share your available working hours with us"
+    "title": "🛡️ Employee Availability Form – Parsec Security Services GmbH",
+    "subtitle": "Please enter your available working hours so we can optimally plan your assignments. All fields marked with an asterisk (*) are required."
   },
   "form": {
     "firstName": "First Name",
@@ -12,20 +12,29 @@
     "toDate": "To Date",
     "shiftType": "Shift Type",
     "selectShiftType": "Select shift type",
-    "dayShift": "Day Shift",
+    "earlyShift": "Early Shift",
+    "lateShift": "Late Shift",
     "nightShift": "Night Shift",
-    "weekend": "Weekend",
-    "allShifts": "All Shifts",
-    "weekdays": "Weekdays",
+    "flexible": "Flexible / As Needed",
+    "isRecurring": "Is this availability recurring?",
+    "recurringYes": "Yes, same every week",
+    "recurringNo": "No, only for the specified period",
+    "weekdays": "Weekdays*",
     "customWeekdays": "Or enter custom (e.g. 'this week Friday')",
     "startTime": "Start Time",
     "endTime": "End Time",
-    "location": "Location",
+    "location": "Preferred Location*",
     "locationPlaceholder": "e.g. Berlin Center",
+    "mobileDeployable": "Mobile Deployable?",
+    "mobileYes": "Yes",
+    "mobileNo": "No",
+    "mobileOnRequest": "Upon Request",
     "notes": "Notes (optional)",
     "notesPlaceholder": "Additional information...",
-    "save": "Save Availability",
-    "update": "Update Availability",
+    "consent": "By submitting, I confirm that the provided information is correct and may be used for assignment planning.",
+    "save": "Submit",
+    "reset": "Reset",
+    "update": "Update",
     "back": "Back"
   },
   "days": {

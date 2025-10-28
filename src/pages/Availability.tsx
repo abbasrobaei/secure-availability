@@ -7,9 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Clock, MapPin, Phone, Calendar, Save, User } from "lucide-react";
+import { ArrowLeft, Clock, MapPin, Phone, Calendar, Save, User, RotateCcw } from "lucide-react";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -20,11 +21,13 @@ const availabilitySchema = z.object({
   phone_number: z.string().trim().min(5, "toast.phoneRequired").max(20, "Phone number too long"),
   date: z.string().nonempty("toast.dateRequired"),
   end_date: z.string().nonempty("toast.endDateRequired"),
+  is_recurring: z.boolean().default(false),
   start_time: z.string().nonempty("toast.startTimeRequired"),
   end_time: z.string().nonempty("toast.endTimeRequired"),
   shift_type: z.string().optional(),
   weekdays: z.string().optional(),
   location: z.string().trim().nonempty("toast.locationRequired").max(200, "Location too long"),
+  mobile_deployable: z.string().optional(),
   notes: z.string().max(500, "Notes too long").optional(),
 });
 
@@ -40,11 +43,13 @@ const Availability = () => {
     phone_number: "",
     date: "",
     end_date: "",
+    is_recurring: false,
     start_time: "",
     end_time: "",
     shift_type: "",
     weekdays: "",
     location: "",
+    mobile_deployable: "",
     notes: "",
   });
 
@@ -78,11 +83,13 @@ const Availability = () => {
           phone_number: data.phone_number,
           date: data.date,
           end_date: data.end_date || data.date,
+          is_recurring: data.is_recurring || false,
           start_time: data.start_time,
           end_time: data.end_time,
           shift_type: data.shift_type || "",
           weekdays: data.weekdays || "",
           location: data.location,
+          mobile_deployable: data.mobile_deployable || "",
           notes: data.notes || "",
         });
         toast.info(t("toast.existingEntry"));
@@ -108,6 +115,26 @@ const Availability = () => {
     });
   };
 
+  const handleReset = () => {
+    setFormData({
+      first_name: "",
+      last_name: "",
+      phone_number: "",
+      date: "",
+      end_date: "",
+      is_recurring: false,
+      start_time: "",
+      end_time: "",
+      shift_type: "",
+      weekdays: "",
+      location: "",
+      mobile_deployable: "",
+      notes: "",
+    });
+    setSelectedWeekdays([]);
+    setExistingEntry(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -123,11 +150,13 @@ const Availability = () => {
             last_name: validated.last_name,
             date: validated.date,
             end_date: validated.end_date,
+            is_recurring: validated.is_recurring,
             start_time: validated.start_time,
             end_time: validated.end_time,
             shift_type: validated.shift_type || null,
             weekdays: validated.weekdays || null,
             location: validated.location,
+            mobile_deployable: validated.mobile_deployable || null,
             notes: validated.notes || null,
           })
           .eq("id", existingEntry.id);
@@ -143,11 +172,13 @@ const Availability = () => {
             phone_number: validated.phone_number,
             date: validated.date,
             end_date: validated.end_date,
+            is_recurring: validated.is_recurring,
             start_time: validated.start_time,
             end_time: validated.end_time,
             shift_type: validated.shift_type || null,
             weekdays: validated.weekdays || null,
             location: validated.location,
+            mobile_deployable: validated.mobile_deployable || null,
             notes: validated.notes || null,
           }]);
 
@@ -284,25 +315,27 @@ const Availability = () => {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="shift_type" className="text-foreground flex items-center">
-                <Clock className="w-4 h-4 mr-2 text-primary" />
-                {t("form.shiftType")}
+            <div className="space-y-3">
+              <Label className="text-foreground">
+                {t("form.isRecurring")}
               </Label>
-              <Select
-                value={formData.shift_type}
-                onValueChange={(value) => setFormData({ ...formData, shift_type: value })}
+              <RadioGroup
+                value={formData.is_recurring ? "yes" : "no"}
+                onValueChange={(value) => setFormData({ ...formData, is_recurring: value === "yes" })}
               >
-                <SelectTrigger className="bg-muted border-border text-foreground">
-                  <SelectValue placeholder={t("form.selectShiftType")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="dayShift">{t("form.dayShift")}</SelectItem>
-                  <SelectItem value="nightShift">{t("form.nightShift")}</SelectItem>
-                  <SelectItem value="weekend">{t("form.weekend")}</SelectItem>
-                  <SelectItem value="allShifts">{t("form.allShifts")}</SelectItem>
-                </SelectContent>
-              </Select>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="yes" id="recurring-yes" />
+                  <Label htmlFor="recurring-yes" className="font-normal cursor-pointer">
+                    {t("form.recurringYes")}
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="no" id="recurring-no" />
+                  <Label htmlFor="recurring-no" className="font-normal cursor-pointer">
+                    {t("form.recurringNo")}
+                  </Label>
+                </div>
+              </RadioGroup>
             </div>
 
             <div className="space-y-3">
@@ -348,6 +381,7 @@ const Availability = () => {
                 <Input
                   id="start_time"
                   type="time"
+                  placeholder="--:--"
                   value={formData.start_time}
                   onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
                   className="bg-muted border-border text-foreground"
@@ -363,6 +397,7 @@ const Availability = () => {
                 <Input
                   id="end_time"
                   type="time"
+                  placeholder="--:--"
                   value={formData.end_time}
                   onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
                   className="bg-muted border-border text-foreground"
@@ -372,9 +407,30 @@ const Availability = () => {
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="shift_type" className="text-foreground flex items-center">
+                <Clock className="w-4 h-4 mr-2 text-primary" />
+                {t("form.shiftType")}
+              </Label>
+              <Select
+                value={formData.shift_type}
+                onValueChange={(value) => setFormData({ ...formData, shift_type: value })}
+              >
+                <SelectTrigger className="bg-muted border-border text-foreground">
+                  <SelectValue placeholder={t("form.selectShiftType")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="earlyShift">{t("form.earlyShift")}</SelectItem>
+                  <SelectItem value="lateShift">{t("form.lateShift")}</SelectItem>
+                  <SelectItem value="nightShift">{t("form.nightShift")}</SelectItem>
+                  <SelectItem value="flexible">{t("form.flexible")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="location" className="text-foreground flex items-center">
                 <MapPin className="w-4 h-4 mr-2 text-primary" />
-                {t("form.location")} *
+                {t("form.location")}
               </Label>
               <Input
                 id="location"
@@ -385,6 +441,25 @@ const Availability = () => {
                 className="bg-muted border-border text-foreground"
                 required
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="mobile_deployable" className="text-foreground">
+                {t("form.mobileDeployable")}
+              </Label>
+              <Select
+                value={formData.mobile_deployable}
+                onValueChange={(value) => setFormData({ ...formData, mobile_deployable: value })}
+              >
+                <SelectTrigger className="bg-muted border-border text-foreground">
+                  <SelectValue placeholder={t("form.mobileDeployable")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="yes">{t("form.mobileYes")}</SelectItem>
+                  <SelectItem value="no">{t("form.mobileNo")}</SelectItem>
+                  <SelectItem value="onRequest">{t("form.mobileOnRequest")}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
@@ -400,15 +475,32 @@ const Availability = () => {
               />
             </div>
 
-            <Button
-              type="submit"
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
-              disabled={loading}
-              size="lg"
-            >
-              <Save className="mr-2 h-5 w-5" />
-              {existingEntry ? t("form.update") : t("form.save")}
-            </Button>
+            <div className="p-4 bg-muted/50 border border-border rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                {t("form.consent")}
+              </p>
+            </div>
+
+            <div className="flex gap-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleReset}
+                className="flex-1"
+              >
+                <RotateCcw className="mr-2 h-4 w-4" />
+                {t("form.reset")}
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+                disabled={loading}
+                size="lg"
+              >
+                <Save className="mr-2 h-5 w-5" />
+                {existingEntry ? t("form.update") : t("form.save")}
+              </Button>
+            </div>
           </form>
         </Card>
       </div>

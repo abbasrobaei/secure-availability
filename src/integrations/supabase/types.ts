@@ -22,8 +22,10 @@ export type Database = {
           end_time: string
           first_name: string
           id: string
+          is_recurring: boolean | null
           last_name: string
           location: string
+          mobile_deployable: string | null
           notes: string | null
           phone_number: string
           shift_type: string | null
@@ -38,8 +40,10 @@ export type Database = {
           end_time: string
           first_name?: string
           id?: string
+          is_recurring?: boolean | null
           last_name?: string
           location: string
+          mobile_deployable?: string | null
           notes?: string | null
           phone_number: string
           shift_type?: string | null
@@ -54,8 +58,10 @@ export type Database = {
           end_time?: string
           first_name?: string
           id?: string
+          is_recurring?: boolean | null
           last_name?: string
           location?: string
+          mobile_deployable?: string | null
           notes?: string | null
           phone_number?: string
           shift_type?: string | null

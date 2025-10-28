@@ -141,15 +141,17 @@ const AdminDashboard = () => {
   };
 
   const exportToCSV = () => {
-    const headers = ["Name", "Phone", "Date Range", "Time", "Shift", "Days", "Location", "Notes"];
+    const headers = ["Name", "Phone", "Date Range", "Recurring", "Time", "Shift", "Days", "Location", "Mobile", "Notes"];
     const csvData = filteredEntries.map((entry) => [
       `${entry.first_name} ${entry.last_name}`,
       entry.phone_number,
       `${entry.date} - ${entry.end_date || entry.date}`,
+      entry.is_recurring ? "Yes" : "No",
       `${entry.start_time} - ${entry.end_time}`,
       entry.shift_type || "",
       entry.weekdays || "",
       entry.location,
+      entry.mobile_deployable || "",
       entry.notes || "",
     ]);
 
@@ -223,10 +225,10 @@ const AdminDashboard = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{t("admin.allShiftTypes")}</SelectItem>
-                    <SelectItem value="dayShift">{t("form.dayShift")}</SelectItem>
+                    <SelectItem value="earlyShift">{t("form.earlyShift")}</SelectItem>
+                    <SelectItem value="lateShift">{t("form.lateShift")}</SelectItem>
                     <SelectItem value="nightShift">{t("form.nightShift")}</SelectItem>
-                    <SelectItem value="weekend">{t("form.weekend")}</SelectItem>
-                    <SelectItem value="allShifts">{t("form.allShifts")}</SelectItem>
+                    <SelectItem value="flexible">{t("form.flexible")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -303,10 +305,12 @@ const AdminDashboard = () => {
                     <TableHead className="text-foreground">{t("admin.name")}</TableHead>
                     <TableHead className="text-foreground">{t("admin.phone")}</TableHead>
                     <TableHead className="text-foreground">{t("admin.dateRange")}</TableHead>
+                    <TableHead className="text-foreground">Recurring</TableHead>
                     <TableHead className="text-foreground">{t("admin.time")}</TableHead>
                     <TableHead className="text-foreground">{t("admin.shift")}</TableHead>
                     <TableHead className="text-foreground">{t("admin.days")}</TableHead>
                     <TableHead className="text-foreground">{t("admin.location")}</TableHead>
+                    <TableHead className="text-foreground">Mobile</TableHead>
                     <TableHead className="text-foreground">{t("admin.notes")}</TableHead>
                     <TableHead className="text-foreground text-right">{t("admin.actions")}</TableHead>
                   </TableRow>
@@ -322,6 +326,15 @@ const AdminDashboard = () => {
                         {entry.date} - {entry.end_date || entry.date}
                       </TableCell>
                       <TableCell className="text-foreground">
+                        {entry.is_recurring ? (
+                          <Badge variant="default" className="bg-green-500/10 text-green-600 dark:text-green-400">
+                            ✓
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-foreground">
                         {entry.start_time} - {entry.end_time}
                       </TableCell>
                       <TableCell>
@@ -333,6 +346,15 @@ const AdminDashboard = () => {
                       </TableCell>
                       <TableCell className="text-foreground text-sm">{entry.weekdays || "-"}</TableCell>
                       <TableCell className="text-foreground">{entry.location}</TableCell>
+                      <TableCell className="text-foreground">
+                        {entry.mobile_deployable ? (
+                          <Badge variant="outline" className="border-border">
+                            {t(`form.mobile${entry.mobile_deployable.charAt(0).toUpperCase() + entry.mobile_deployable.slice(1)}`)}
+                          </Badge>
+                        ) : (
+                          "-"
+                        )}
+                      </TableCell>
                       <TableCell className="text-foreground text-sm max-w-xs truncate">
                         {entry.notes || "-"}
                       </TableCell>
