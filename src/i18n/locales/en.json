@@ -1,8 +1,8 @@
 {
-  "companyName": "Parsec Security Services GmbH",
+  "companyName": "Parsec-Sicherheitsdienst GmbH",
   "hero": {
-    "title": "🛡️ Employee Availability Form – Parsec Security Services GmbH",
-    "subtitle": "Please enter your available working hours so we can optimally plan your assignments. All fields marked with an asterisk (*) are required."
+    "title": "Enter Availability",
+    "subtitle": "Share your available working hours with us."
   },
   "form": {
     "firstName": "First Name",

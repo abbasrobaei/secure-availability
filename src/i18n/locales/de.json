@@ -1,8 +1,8 @@
 {
   "companyName": "Parsec-Sicherheitsdienst GmbH",
   "hero": {
-    "title": "🛡️ Verfügbarkeitsformular für Mitarbeiter – Parsec-Sicherheitsdienst GmbH",
-    "subtitle": "Bitte tragen Sie hier Ihre verfügbaren Arbeitszeiten ein, damit wir Ihre Einsätze optimal planen können. Alle mit einem Stern (*) gekennzeichneten Felder sind Pflichtfelder."
+    "title": "Verfügbarkeit eintragen",
+    "subtitle": "Teilen Sie uns Ihre verfügbaren Arbeitszeiten mit."
   },
   "form": {
     "firstName": "Vorname",
