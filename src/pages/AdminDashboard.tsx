@@ -61,6 +61,18 @@ const AdminDashboard = () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       navigate("/admin/login");
+      return;
+    }
+
+    // Check if user has admin role
+    const { data: isAdmin, error } = await supabase.rpc('has_role', {
+      _user_id: session.user.id,
+      _role: 'admin'
+    });
+
+    if (error || !isAdmin) {
+      toast.error("Access denied - Admin privileges required");
+      navigate("/");
     }
   };
 
