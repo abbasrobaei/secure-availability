@@ -20,17 +20,15 @@ export type Database = {
           date: string
           end_date: string | null
           end_time: string
-          first_name: string
           id: string
           is_recurring: boolean | null
-          last_name: string
           location: string
           mobile_deployable: string | null
           notes: string | null
-          phone_number: string
           shift_type: string | null
           start_time: string
           updated_at: string | null
+          user_id: string | null
           weekdays: string | null
         }
         Insert: {
@@ -38,17 +36,15 @@ export type Database = {
           date: string
           end_date?: string | null
           end_time: string
-          first_name?: string
           id?: string
           is_recurring?: boolean | null
-          last_name?: string
           location: string
           mobile_deployable?: string | null
           notes?: string | null
-          phone_number: string
           shift_type?: string | null
           start_time: string
           updated_at?: string | null
+          user_id?: string | null
           weekdays?: string | null
         }
         Update: {
@@ -56,17 +52,15 @@ export type Database = {
           date?: string
           end_date?: string | null
           end_time?: string
-          first_name?: string
           id?: string
           is_recurring?: boolean | null
-          last_name?: string
           location?: string
           mobile_deployable?: string | null
           notes?: string | null
-          phone_number?: string
           shift_type?: string | null
           start_time?: string
           updated_at?: string | null
+          user_id?: string | null
           weekdays?: string | null
         }
         Relationships: []
@@ -75,17 +69,26 @@ export type Database = {
         Row: {
           created_at: string | null
           email: string
+          first_name: string | null
           id: string
+          last_name: string | null
+          phone_number: string | null
         }
         Insert: {
           created_at?: string | null
           email: string
+          first_name?: string | null
           id: string
+          last_name?: string | null
+          phone_number?: string | null
         }
         Update: {
           created_at?: string | null
           email?: string
+          first_name?: string | null
           id?: string
+          last_name?: string | null
+          phone_number?: string | null
         }
         Relationships: []
       }

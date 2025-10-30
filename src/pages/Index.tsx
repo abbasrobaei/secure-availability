@@ -1,12 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Shield, Clock, UserCheck, Lock } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 const Index = () => {
-  const navigate = useNavigate();
   const { t } = useTranslation();
 
   return (
@@ -45,14 +44,19 @@ const Index = () => {
               <p className="text-muted-foreground">
                 {t("hero.subtitle")}
               </p>
-              <Button 
-                size="lg" 
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
-                onClick={() => navigate("/availability")}
-              >
-                <UserCheck className="mr-2 h-5 w-5" />
-                {t("hero.title")}
-              </Button>
+              <div className="flex flex-col gap-3 w-full">
+                <Link to="/registrieren" className="w-full">
+                  <Button size="lg" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold">
+                    <UserCheck className="mr-2 h-5 w-5" />
+                    {t("auth.register")}
+                  </Button>
+                </Link>
+                <Link to="/login" className="w-full">
+                  <Button size="lg" variant="outline" className="w-full border-primary text-primary hover:bg-primary/10">
+                    {t("auth.login")}
+                  </Button>
+                </Link>
+              </div>
             </div>
           </Card>
 
@@ -65,15 +69,12 @@ const Index = () => {
               <p className="text-muted-foreground">
                 Verwalten Sie alle Verfügbarkeiten zentral – mit Filteroptionen und Export-Funktionen.
               </p>
-              <Button 
-                size="lg" 
-                variant="secondary"
-                className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground font-semibold"
-                onClick={() => navigate("/admin/login")}
-              >
-                <Lock className="mr-2 h-5 w-5" />
-                Admin-Login
-              </Button>
+              <Link to="/admin/login" className="w-full">
+                <Button size="lg" variant="secondary" className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground font-semibold">
+                  <Lock className="mr-2 h-5 w-5" />
+                  Admin-Login
+                </Button>
+              </Link>
             </div>
           </Card>
         </div>
@@ -85,9 +86,9 @@ const Index = () => {
                 <Shield className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-foreground mb-2">Einfach & Schnell</h3>
+                <h3 className="font-semibold text-foreground mb-2">Sicher & Geschützt</h3>
                 <p className="text-sm text-muted-foreground">
-                  Keine Registrierung erforderlich – nur Telefonnummer eingeben
+                  Registrierung mit E-Mail – Ihre Daten sind geschützt
                 </p>
               </div>
             </div>
