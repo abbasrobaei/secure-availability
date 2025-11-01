@@ -60,7 +60,7 @@ const AdminDashboard = () => {
   const checkAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-      navigate("/admin/login");
+      navigate("/login");
       return;
     }
 
@@ -136,7 +136,7 @@ const AdminDashboard = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate("/admin/login");
+    navigate("/login");
   };
 
   const handleDelete = async (id: string) => {

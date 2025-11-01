@@ -50,7 +50,7 @@ const Login = () => {
       const validated = loginSchema.parse(formData);
       setLoading(true);
 
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: validated.email,
         password: validated.password,
       });
@@ -64,7 +64,20 @@ const Login = () => {
         return;
       }
 
+      // Check if user has admin role
+      const { data: isAdmin } = await supabase.rpc('has_role', {
+        _user_id: data.user.id,
+        _role: 'admin'
+      });
+
       toast.success(t("auth.loginSuccess"));
+      
+      // Redirect based on role
+      if (isAdmin) {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (error) {
       if (error instanceof z.ZodError) {
         error.errors.forEach((err) => {

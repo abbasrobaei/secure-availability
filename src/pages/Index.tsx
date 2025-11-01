@@ -69,7 +69,7 @@ const Index = () => {
               <p className="text-muted-foreground">
                 Verwalten Sie alle Verfügbarkeiten zentral – mit Filteroptionen und Export-Funktionen.
               </p>
-              <Link to="/admin/login" className="w-full">
+              <Link to="/login" className="w-full">
                 <Button size="lg" variant="secondary" className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground font-semibold">
                   <Lock className="mr-2 h-5 w-5" />
                   Admin-Login
