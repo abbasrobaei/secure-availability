@@ -4,10 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { LogOut, Download, Trash2, Search, Filter, Calendar, Clock } from "lucide-react";
+import { LogOut, Download, Trash2, Search, Filter, Calendar, Clock, UserPlus, Mail, Lock, User } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,15 @@ const AdminDashboard = () => {
   const [searchDate, setSearchDate] = useState("");
   const [searchTime, setSearchTime] = useState("");
   const [locations, setLocations] = useState<string[]>([]);
+  const [showCreateAdmin, setShowCreateAdmin] = useState(false);
+  const [adminFormData, setAdminFormData] = useState({
+    email: "",
+    password: "",
+    firstName: "",
+    lastName: "",
+    phoneNumber: "",
+  });
+  const [creatingAdmin, setCreatingAdmin] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -181,6 +191,74 @@ const AdminDashboard = () => {
     return t(`form.${shiftType}`);
   };
 
+  const handleCreateAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (adminFormData.password.length < 6) {
+      toast.error(t("admin.passwordTooShort"));
+      return;
+    }
+
+    setCreatingAdmin(true);
+    try {
+      // Create the admin user
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: adminFormData.email,
+        password: adminFormData.password,
+        options: {
+          data: {
+            first_name: adminFormData.firstName,
+            last_name: adminFormData.lastName,
+            phone_number: adminFormData.phoneNumber,
+          }
+        }
+      });
+
+      if (signUpError) {
+        if (signUpError.message.includes("already registered")) {
+          toast.error(t("auth.emailAlreadyRegistered"));
+        } else {
+          toast.error(signUpError.message);
+        }
+        return;
+      }
+
+      if (!signUpData.user) {
+        toast.error(t("admin.createAdminError"));
+        return;
+      }
+
+      // Assign admin role
+      const { error: roleError } = await supabase
+        .from("user_roles")
+        .insert({
+          user_id: signUpData.user.id,
+          role: "admin"
+        });
+
+      if (roleError) {
+        console.error("Role assignment error:", roleError);
+        toast.error(t("admin.roleAssignmentError"));
+        return;
+      }
+
+      toast.success(t("admin.adminCreated"));
+      setShowCreateAdmin(false);
+      setAdminFormData({
+        email: "",
+        password: "",
+        firstName: "",
+        lastName: "",
+        phoneNumber: "",
+      });
+    } catch (error) {
+      console.error("Create admin error:", error);
+      toast.error(t("admin.createAdminError"));
+    } finally {
+      setCreatingAdmin(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted py-8 px-4">
       <div className="container mx-auto max-w-7xl">
@@ -198,12 +276,134 @@ const AdminDashboard = () => {
           </div>
           <div className="flex gap-2">
             <LanguageSwitcher />
+            <Button 
+              variant="secondary" 
+              onClick={() => setShowCreateAdmin(!showCreateAdmin)}
+              className="bg-secondary hover:bg-secondary/90"
+            >
+              <UserPlus className="mr-2 h-4 w-4" />
+              {t("admin.createAdmin")}
+            </Button>
             <Button variant="outline" onClick={handleLogout} className="border-border">
               <LogOut className="mr-2 h-4 w-4" />
               {t("admin.logout")}
             </Button>
           </div>
         </div>
+
+        {showCreateAdmin && (
+          <Card className="p-6 bg-card border-border shadow-[var(--shadow-card)] mb-6">
+            <h2 className="text-2xl font-bold text-foreground mb-4">{t("admin.createNewAdmin")}</h2>
+            <form onSubmit={handleCreateAdmin} className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="admin-firstName" className="text-foreground flex items-center">
+                    <User className="w-4 h-4 mr-2 text-secondary" />
+                    {t("form.firstName")}
+                  </Label>
+                  <Input
+                    id="admin-firstName"
+                    type="text"
+                    value={adminFormData.firstName}
+                    onChange={(e) => setAdminFormData({ ...adminFormData, firstName: e.target.value })}
+                    className="bg-muted border-border"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="admin-lastName" className="text-foreground flex items-center">
+                    <User className="w-4 h-4 mr-2 text-secondary" />
+                    {t("form.lastName")}
+                  </Label>
+                  <Input
+                    id="admin-lastName"
+                    type="text"
+                    value={adminFormData.lastName}
+                    onChange={(e) => setAdminFormData({ ...adminFormData, lastName: e.target.value })}
+                    className="bg-muted border-border"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="admin-email" className="text-foreground flex items-center">
+                    <Mail className="w-4 h-4 mr-2 text-secondary" />
+                    {t("auth.email")}
+                  </Label>
+                  <Input
+                    id="admin-email"
+                    type="email"
+                    value={adminFormData.email}
+                    onChange={(e) => setAdminFormData({ ...adminFormData, email: e.target.value })}
+                    className="bg-muted border-border"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="admin-phone" className="text-foreground flex items-center">
+                    <User className="w-4 h-4 mr-2 text-secondary" />
+                    {t("form.phoneNumber")}
+                  </Label>
+                  <Input
+                    id="admin-phone"
+                    type="tel"
+                    value={adminFormData.phoneNumber}
+                    onChange={(e) => setAdminFormData({ ...adminFormData, phoneNumber: e.target.value })}
+                    className="bg-muted border-border"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="admin-password" className="text-foreground flex items-center">
+                    <Lock className="w-4 h-4 mr-2 text-secondary" />
+                    {t("auth.password")}
+                  </Label>
+                  <Input
+                    id="admin-password"
+                    type="password"
+                    value={adminFormData.password}
+                    onChange={(e) => setAdminFormData({ ...adminFormData, password: e.target.value })}
+                    className="bg-muted border-border"
+                    required
+                    minLength={6}
+                  />
+                  <p className="text-sm text-muted-foreground">{t("admin.passwordMinLength")}</p>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  type="submit"
+                  disabled={creatingAdmin}
+                  className="bg-secondary hover:bg-secondary/90"
+                >
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  {creatingAdmin ? t("admin.creating") : t("admin.createAdmin")}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowCreateAdmin(false);
+                    setAdminFormData({
+                      email: "",
+                      password: "",
+                      firstName: "",
+                      lastName: "",
+                      phoneNumber: "",
+                    });
+                  }}
+                  className="border-border"
+                >
+                  {t("form.back")}
+                </Button>
+              </div>
+            </form>
+          </Card>
+        )}
 
         <Card className="p-6 bg-card border-border shadow-[var(--shadow-card)] mb-6">
           <div className="space-y-4">
