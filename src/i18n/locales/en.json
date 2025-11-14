@@ -84,6 +84,8 @@
     "firstName": "First Name",
     "lastName": "Last Name",
     "phoneNumber": "Phone Number",
+    "guardIdNumber": "Guard ID Number",
+    "optional": "(optional)",
     "alreadyHaveAccount": "Already registered?",
     "noAccount": "No account yet?",
     "loginHere": "Login here",

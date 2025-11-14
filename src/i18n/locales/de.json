@@ -84,6 +84,8 @@
     "firstName": "Vorname",
     "lastName": "Nachname",
     "phoneNumber": "Telefonnummer",
+    "guardIdNumber": "Bewacher-ID-Nummer",
+    "optional": "(optional)",
     "alreadyHaveAccount": "Bereits registriert?",
     "noAccount": "Noch kein Konto?",
     "loginHere": "Hier anmelden",

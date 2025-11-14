@@ -84,6 +84,8 @@
     "firstName": "الاسم الأول",
     "lastName": "اسم العائلة",
     "phoneNumber": "رقم الهاتف",
+    "guardIdNumber": "رقم هوية الحارس",
+    "optional": "(اختياري)",
     "alreadyHaveAccount": "مسجل بالفعل؟",
     "noAccount": "ليس لديك حساب؟",
     "loginHere": "تسجيل الدخول هنا",
