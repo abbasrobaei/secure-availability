@@ -84,6 +84,8 @@
     "firstName": "نام",
     "lastName": "نام خانوادگی",
     "phoneNumber": "شماره تلفن",
+    "guardIdNumber": "شماره شناسایی نگهبان",
+    "optional": "(اختیاری)",
     "alreadyHaveAccount": "قبلا ثبت نام کرده اید؟",
     "noAccount": "هنوز حساب ندارید؟",
     "loginHere": "اینجا وارد شوید",

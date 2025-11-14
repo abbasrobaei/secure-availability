@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { UserPlus, Mail, Lock, User, Phone, ArrowLeft } from "lucide-react";
+import { UserPlus, Mail, Lock, User, Phone, ArrowLeft, IdCard } from "lucide-react";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -18,6 +18,7 @@ const registerSchema = z.object({
   firstName: z.string().trim().min(1, "First name is required").max(100),
   lastName: z.string().trim().min(1, "Last name is required").max(100),
   phoneNumber: z.string().trim().min(1, "Phone number is required").max(50),
+  guardIdNumber: z.string().trim().max(50).optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -34,6 +35,7 @@ const Register = () => {
     firstName: "",
     lastName: "",
     phoneNumber: "",
+    guardIdNumber: "",
   });
 
   useEffect(() => {
@@ -71,6 +73,7 @@ const Register = () => {
             first_name: validated.firstName,
             last_name: validated.lastName,
             phone_number: validated.phoneNumber,
+            guard_id_number: validated.guardIdNumber || null,
           }
         }
       });
@@ -194,6 +197,22 @@ const Register = () => {
                 className="bg-muted border-border text-foreground"
                 required
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="guardIdNumber" className="text-foreground flex items-center">
+                <IdCard className="w-4 h-4 mr-2 text-secondary" />
+                {t("auth.guardIdNumber")}
+              </Label>
+              <Input
+                id="guardIdNumber"
+                type="text"
+                placeholder={t("auth.guardIdNumber")}
+                value={formData.guardIdNumber}
+                onChange={(e) => setFormData({ ...formData, guardIdNumber: e.target.value })}
+                className="bg-muted border-border text-foreground"
+              />
+              <p className="text-xs text-muted-foreground">{t("auth.optional")}</p>
             </div>
 
             <div className="space-y-2">
