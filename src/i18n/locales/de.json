@@ -85,6 +85,7 @@
     "lastName": "Nachname",
     "phoneNumber": "Telefonnummer",
     "guardIdNumber": "Bewacher-ID-Nummer",
+    "ePinNumber": "e-Pin-Nummer",
     "optional": "(optional)",
     "alreadyHaveAccount": "Bereits registriert?",
     "noAccount": "Noch kein Konto?",

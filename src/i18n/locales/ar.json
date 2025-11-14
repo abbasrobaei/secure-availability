@@ -85,6 +85,7 @@
     "lastName": "اسم العائلة",
     "phoneNumber": "رقم الهاتف",
     "guardIdNumber": "رقم هوية الحارس",
+    "ePinNumber": "رقم البين الإلكتروني",
     "optional": "(اختياري)",
     "alreadyHaveAccount": "مسجل بالفعل؟",
     "noAccount": "ليس لديك حساب؟",
