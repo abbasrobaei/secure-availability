@@ -88,16 +88,40 @@ const AdminDashboard = () => {
 
   const fetchEntries = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch availability entries
+      const { data: availabilityData, error: availabilityError } = await supabase
         .from("availability")
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (availabilityError) throw availabilityError;
 
-      setEntries(data || []);
+      // Fetch all profiles
+      const { data: profilesData, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, phone_number, guard_id_number, e_pin_number");
+
+      if (profilesError) throw profilesError;
+
+      // Create a map of profiles by user_id for quick lookup
+      const profilesMap = new Map(profilesData?.map(profile => [profile.id, profile]) || []);
+
+      // Merge availability with profile data
+      const mergedData = availabilityData?.map(entry => {
+        const profile = profilesMap.get(entry.user_id || '');
+        return {
+          ...entry,
+          first_name: profile?.first_name || '',
+          last_name: profile?.last_name || '',
+          phone_number: profile?.phone_number || '',
+          guard_id_number: profile?.guard_id_number || '',
+          e_pin_number: profile?.e_pin_number || ''
+        };
+      }) || [];
+
+      setEntries(mergedData);
       
-      const uniqueLocations = Array.from(new Set(data?.map((entry) => entry.location) || []));
+      const uniqueLocations = Array.from(new Set(mergedData?.map((entry) => entry.location) || []));
       setLocations(uniqueLocations as string[]);
     } catch (error) {
       console.error("Error fetching entries:", error);
@@ -516,6 +540,8 @@ const AdminDashboard = () => {
                   <TableRow className="border-border">
                     <TableHead className="text-foreground">{t("admin.name")}</TableHead>
                     <TableHead className="text-foreground">{t("admin.phone")}</TableHead>
+                    <TableHead className="text-foreground">Guard ID</TableHead>
+                    <TableHead className="text-foreground">e-Pin</TableHead>
                     <TableHead className="text-foreground">{t("admin.dateRange")}</TableHead>
                     <TableHead className="text-foreground">Recurring</TableHead>
                     <TableHead className="text-foreground">{t("admin.time")}</TableHead>
@@ -534,6 +560,8 @@ const AdminDashboard = () => {
                         {entry.first_name} {entry.last_name}
                       </TableCell>
                       <TableCell className="text-foreground">{entry.phone_number}</TableCell>
+                      <TableCell className="text-foreground text-sm">{entry.guard_id_number || "-"}</TableCell>
+                      <TableCell className="text-foreground text-sm">{entry.e_pin_number || "-"}</TableCell>
                       <TableCell className="text-foreground">
                         {entry.date} - {entry.end_date || entry.date}
                       </TableCell>
