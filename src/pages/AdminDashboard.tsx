@@ -607,7 +607,7 @@ const AdminDashboard = () => {
                             onClick={() => {
                               const phone = entry.phone_number.replace(/\D/g, '');
                               const message = encodeURIComponent(`Hallo ${entry.first_name} ${entry.last_name}, wir möchten Sie über Ihre Verfügbarkeit kontaktieren.`);
-                              window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+                              window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${message}`, '_blank');
                             }}
                             className="border-green-500 text-green-600 hover:bg-green-500/10"
                           >
