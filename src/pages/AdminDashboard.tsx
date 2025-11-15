@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { LogOut, Download, Trash2, Search, Filter, Calendar, Clock, UserPlus, Mail, Lock, User } from "lucide-react";
+import { LogOut, Download, Trash2, Search, Filter, Calendar, Clock, UserPlus, Mail, Lock, User, MessageCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Badge } from "@/components/ui/badge";
@@ -550,6 +550,7 @@ const AdminDashboard = () => {
                     <TableHead className="text-foreground">{t("admin.location")}</TableHead>
                     <TableHead className="text-foreground">Mobile</TableHead>
                     <TableHead className="text-foreground">{t("admin.notes")}</TableHead>
+                    <TableHead className="text-foreground">WhatsApp</TableHead>
                     <TableHead className="text-foreground text-right">{t("admin.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -597,6 +598,24 @@ const AdminDashboard = () => {
                       </TableCell>
                       <TableCell className="text-foreground text-sm max-w-xs truncate">
                         {entry.notes || "-"}
+                      </TableCell>
+                      <TableCell>
+                        {entry.phone_number ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const phone = entry.phone_number.replace(/\D/g, '');
+                              const message = encodeURIComponent(`Hallo ${entry.first_name} ${entry.last_name}, wir möchten Sie über Ihre Verfügbarkeit kontaktieren.`);
+                              window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+                            }}
+                            className="border-green-500 text-green-600 hover:bg-green-500/10"
+                          >
+                            <MessageCircle className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
