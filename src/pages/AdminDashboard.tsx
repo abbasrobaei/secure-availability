@@ -601,18 +601,19 @@ const AdminDashboard = () => {
                       </TableCell>
                       <TableCell>
                         {entry.phone_number ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              const phone = entry.phone_number.replace(/\D/g, '');
-                              const message = encodeURIComponent(`Hallo ${entry.first_name} ${entry.last_name}, wir möchten Sie über Ihre Verfügbarkeit kontaktieren.`);
-                              window.open(`https://web.whatsapp.com/send?phone=${phone}&text=${message}`, '_blank');
-                            }}
-                            className="border-green-500 text-green-600 hover:bg-green-500/10"
+                          <a
+                            href={`https://web.whatsapp.com/send?phone=${entry.phone_number.replace(/\D/g, '')}&text=${encodeURIComponent(`Hallo ${entry.first_name} ${entry.last_name}, wir möchten Sie über Ihre Verfügbarkeit kontaktieren.`)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
                           >
-                            <MessageCircle className="h-4 w-4" />
-                          </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="border-green-500 text-green-600 hover:bg-green-500/10"
+                            >
+                              <MessageCircle className="h-4 w-4" />
+                            </Button>
+                          </a>
                         ) : (
                           <span className="text-muted-foreground">-</span>
                         )}
