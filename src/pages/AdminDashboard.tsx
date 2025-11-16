@@ -557,14 +557,17 @@ const AdminDashboard = () => {
                 <TableBody>
                   {filteredEntries.map((entry) => (
                     <TableRow key={entry.id} className="border-border">
-                      <TableCell className="text-foreground font-medium">
+                      <TableCell className="text-foreground font-semibold">
                         {entry.first_name} {entry.last_name}
                       </TableCell>
                       <TableCell className="text-foreground">{entry.phone_number}</TableCell>
                       <TableCell className="text-foreground text-sm">{entry.guard_id_number || "-"}</TableCell>
                       <TableCell className="text-foreground text-sm">{entry.e_pin_number || "-"}</TableCell>
-                      <TableCell className="text-foreground">
-                        {entry.date} - {entry.end_date || entry.date}
+                      <TableCell className="text-foreground font-medium">
+                        {new Date(entry.date).toLocaleDateString('de-DE')}
+                        {entry.end_date && entry.end_date !== entry.date && (
+                          <> - {new Date(entry.end_date).toLocaleDateString('de-DE')}</>
+                        )}
                       </TableCell>
                       <TableCell className="text-foreground">
                         {entry.is_recurring ? (
@@ -575,8 +578,8 @@ const AdminDashboard = () => {
                           <span className="text-muted-foreground">-</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-foreground">
-                        {entry.start_time} - {entry.end_time}
+                      <TableCell className="text-foreground font-medium">
+                        {entry.start_time?.substring(0, 5)} - {entry.end_time?.substring(0, 5)}
                       </TableCell>
                       <TableCell>
                         {entry.shift_type && (
@@ -587,13 +590,17 @@ const AdminDashboard = () => {
                       </TableCell>
                       <TableCell className="text-foreground text-sm">{entry.weekdays || "-"}</TableCell>
                       <TableCell className="text-foreground">{entry.location}</TableCell>
-                      <TableCell className="text-foreground">
-                        {entry.mobile_deployable ? (
-                          <Badge variant="outline" className="border-border">
-                            {t(`form.mobile${entry.mobile_deployable.charAt(0).toUpperCase() + entry.mobile_deployable.slice(1)}`)}
+                      <TableCell>
+                        {entry.mobile_deployable === "yes" ? (
+                          <Badge className="bg-green-500/10 text-green-600 border-green-500/20 dark:text-green-400">
+                            ✓ Ja
+                          </Badge>
+                        ) : entry.mobile_deployable === "no" ? (
+                          <Badge variant="outline" className="border-red-500/20 text-red-600 dark:text-red-400">
+                            ✗ Nein
                           </Badge>
                         ) : (
-                          "-"
+                          <span className="text-muted-foreground">-</span>
                         )}
                       </TableCell>
                       <TableCell className="text-foreground text-sm max-w-xs truncate">
