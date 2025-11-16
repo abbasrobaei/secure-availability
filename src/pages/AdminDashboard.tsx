@@ -743,7 +743,7 @@ const AdminDashboard = () => {
                       <TableCell>
                         {entry.phone_number ? (
                           <a
-                            href={`https://web.whatsapp.com/send?phone=${entry.phone_number.replace(/\D/g, '')}&text=${encodeURIComponent(`Hallo ${entry.first_name} ${entry.last_name}, wir möchten Sie über Ihre Verfügbarkeit kontaktieren.`)}`}
+                            href={`https://wa.me/${entry.phone_number.replace(/\D/g, '')}?text=Ich%20möchte%20einen%20Termin%20vereinbaren.`}
                             target="_blank"
                             rel="noopener noreferrer"
                           >
