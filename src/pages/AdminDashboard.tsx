@@ -746,14 +746,9 @@ const AdminDashboard = () => {
                             href={`https://wa.me/${entry.phone_number.replace(/\D/g, '')}?text=Ich%20möchte%20einen%20Termin%20vereinbaren.`}
                             target="_blank"
                             rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center rounded-md border border-green-500 bg-background px-3 py-2 text-sm text-green-600 hover:bg-green-500/10 transition-colors"
                           >
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="border-green-500 text-green-600 hover:bg-green-500/10"
-                            >
-                              <MessageCircle className="h-4 w-4" />
-                            </Button>
+                            <MessageCircle className="h-4 w-4" />
                           </a>
                         ) : (
                           <span className="text-muted-foreground">-</span>
