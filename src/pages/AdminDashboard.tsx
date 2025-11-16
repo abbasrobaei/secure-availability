@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { LogOut, Download, Trash2, Search, Filter, Calendar, Clock, UserPlus, Mail, Lock, User, MessageCircle } from "lucide-react";
+import { LogOut, Download, Trash2, Search, Filter, Calendar, Clock, UserPlus, Mail, Lock, User, MessageCircle, X, RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,8 @@ const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterShiftType, setFilterShiftType] = useState("all");
   const [filterLocation, setFilterLocation] = useState("all");
+  const [filterMobile, setFilterMobile] = useState("all");
+  const [filterRecurring, setFilterRecurring] = useState("all");
   const [searchDate, setSearchDate] = useState("");
   const [searchTime, setSearchTime] = useState("");
   const [locations, setLocations] = useState<string[]>([]);
@@ -43,7 +45,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     filterData();
-  }, [entries, searchTerm, filterShiftType, filterLocation, searchDate, searchTime]);
+  }, [entries, searchTerm, filterShiftType, filterLocation, filterMobile, filterRecurring, searchDate, searchTime]);
 
   const setupRealtimeSubscription = () => {
     const channel = supabase
@@ -150,6 +152,15 @@ const AdminDashboard = () => {
       filtered = filtered.filter((entry) => entry.location === filterLocation);
     }
 
+    if (filterMobile !== "all") {
+      filtered = filtered.filter((entry) => entry.mobile_deployable === filterMobile);
+    }
+
+    if (filterRecurring !== "all") {
+      const isRecurring = filterRecurring === "yes";
+      filtered = filtered.filter((entry) => entry.is_recurring === isRecurring);
+    }
+
     if (searchDate) {
       filtered = filtered.filter((entry) => {
         const entryStartDate = new Date(entry.date);
@@ -213,6 +224,28 @@ const AdminDashboard = () => {
   const getShiftTypeLabel = (shiftType: string | null) => {
     if (!shiftType) return "-";
     return t(`form.${shiftType}`);
+  };
+
+  const resetAllFilters = () => {
+    setSearchTerm("");
+    setFilterShiftType("all");
+    setFilterLocation("all");
+    setFilterMobile("all");
+    setFilterRecurring("all");
+    setSearchDate("");
+    setSearchTime("");
+  };
+
+  const getActiveFiltersCount = () => {
+    let count = 0;
+    if (searchTerm) count++;
+    if (filterShiftType !== "all") count++;
+    if (filterLocation !== "all") count++;
+    if (filterMobile !== "all") count++;
+    if (filterRecurring !== "all") count++;
+    if (searchDate) count++;
+    if (searchTime) count++;
+    return count;
   };
 
   const handleCreateAdmin = async (e: React.FormEvent) => {
@@ -431,8 +464,8 @@ const AdminDashboard = () => {
 
         <Card className="p-6 bg-card border-border shadow-[var(--shadow-card)] mb-6">
           <div className="space-y-4">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
+            <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+              <div className="flex-1 w-full">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
@@ -443,20 +476,32 @@ const AdminDashboard = () => {
                   />
                 </div>
               </div>
-              <Button onClick={exportToCSV} variant="outline" className="border-border">
-                <Download className="mr-2 h-4 w-4" />
-                {t("admin.export")}
-              </Button>
+              <div className="flex gap-2 w-full md:w-auto">
+                {getActiveFiltersCount() > 0 && (
+                  <Button 
+                    onClick={resetAllFilters} 
+                    variant="outline" 
+                    className="border-border hover:bg-destructive/10 hover:text-destructive hover:border-destructive"
+                  >
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Filter zurücksetzen ({getActiveFiltersCount()})
+                  </Button>
+                )}
+                <Button onClick={exportToCSV} variant="outline" className="border-border">
+                  <Download className="mr-2 h-4 w-4" />
+                  {t("admin.export")}
+                </Button>
+              </div>
             </div>
 
-            <div className="grid md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <Filter className="h-4 w-4 text-primary" />
-                  <span className="text-sm text-muted-foreground">{t("admin.filter")}</span>
+                  <span className="text-sm font-medium text-muted-foreground">{t("admin.filter")}</span>
                 </div>
                 <Select value={filterShiftType} onValueChange={setFilterShiftType}>
-                  <SelectTrigger className="bg-muted border-border">
+                  <SelectTrigger className={`bg-muted border-border ${filterShiftType !== "all" ? "border-primary ring-2 ring-primary/20" : ""}`}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -472,10 +517,10 @@ const AdminDashboard = () => {
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <Filter className="h-4 w-4 text-primary" />
-                  <span className="text-sm text-muted-foreground">{t("form.location")}</span>
+                  <span className="text-sm font-medium text-muted-foreground">{t("form.location")}</span>
                 </div>
                 <Select value={filterLocation} onValueChange={setFilterLocation}>
-                  <SelectTrigger className="bg-muted border-border">
+                  <SelectTrigger className={`bg-muted border-border ${filterLocation !== "all" ? "border-primary ring-2 ring-primary/20" : ""}`}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -491,36 +536,125 @@ const AdminDashboard = () => {
 
               <div>
                 <div className="flex items-center gap-2 mb-2">
+                  <Filter className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium text-muted-foreground">Mobile</span>
+                </div>
+                <Select value={filterMobile} onValueChange={setFilterMobile}>
+                  <SelectTrigger className={`bg-muted border-border ${filterMobile !== "all" ? "border-primary ring-2 ring-primary/20" : ""}`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Alle</SelectItem>
+                    <SelectItem value="yes">✓ Ja</SelectItem>
+                    <SelectItem value="no">✗ Nein</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Filter className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium text-muted-foreground">Recurring</span>
+                </div>
+                <Select value={filterRecurring} onValueChange={setFilterRecurring}>
+                  <SelectTrigger className={`bg-muted border-border ${filterRecurring !== "all" ? "border-primary ring-2 ring-primary/20" : ""}`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Alle</SelectItem>
+                    <SelectItem value="yes">✓ Ja</SelectItem>
+                    <SelectItem value="no">Einmalig</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <div className="flex items-center gap-2 mb-2">
                   <Calendar className="h-4 w-4 text-primary" />
-                  <span className="text-sm text-muted-foreground">{t("admin.searchByDate")}</span>
+                  <span className="text-sm font-medium text-muted-foreground">{t("admin.searchByDate")}</span>
                 </div>
                 <Input
                   type="date"
                   value={searchDate}
                   onChange={(e) => setSearchDate(e.target.value)}
-                  className="bg-muted border-border"
+                  className={`bg-muted border-border ${searchDate ? "border-primary ring-2 ring-primary/20" : ""}`}
                 />
               </div>
 
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <Clock className="h-4 w-4 text-primary" />
-                  <span className="text-sm text-muted-foreground">{t("admin.searchByTime")}</span>
+                  <span className="text-sm font-medium text-muted-foreground">{t("admin.searchByTime")}</span>
                 </div>
                 <Input
                   type="time"
                   value={searchTime}
                   onChange={(e) => setSearchTime(e.target.value)}
-                  className="bg-muted border-border"
+                  className={`bg-muted border-border ${searchTime ? "border-primary ring-2 ring-primary/20" : ""}`}
                 />
               </div>
             </div>
 
-            {(searchDate || searchTime) && (
-              <div className="p-4 bg-primary/10 rounded-lg">
-                <h3 className="font-semibold text-foreground mb-2">
-                  {t("admin.availablePeople")}: {filteredEntries.length}
-                </h3>
+            <div className="flex flex-wrap gap-2">
+              {searchTerm && (
+                <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 px-3 py-1">
+                  Suche: "{searchTerm}"
+                  <X className="ml-2 h-3 w-3 cursor-pointer" onClick={() => setSearchTerm("")} />
+                </Badge>
+              )}
+              {filterShiftType !== "all" && (
+                <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 px-3 py-1">
+                  Schicht: {getShiftTypeLabel(filterShiftType)}
+                  <X className="ml-2 h-3 w-3 cursor-pointer" onClick={() => setFilterShiftType("all")} />
+                </Badge>
+              )}
+              {filterLocation !== "all" && (
+                <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 px-3 py-1">
+                  Standort: {filterLocation}
+                  <X className="ml-2 h-3 w-3 cursor-pointer" onClick={() => setFilterLocation("all")} />
+                </Badge>
+              )}
+              {filterMobile !== "all" && (
+                <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 px-3 py-1">
+                  Mobile: {filterMobile === "yes" ? "Ja" : "Nein"}
+                  <X className="ml-2 h-3 w-3 cursor-pointer" onClick={() => setFilterMobile("all")} />
+                </Badge>
+              )}
+              {filterRecurring !== "all" && (
+                <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 px-3 py-1">
+                  Recurring: {filterRecurring === "yes" ? "Ja" : "Einmalig"}
+                  <X className="ml-2 h-3 w-3 cursor-pointer" onClick={() => setFilterRecurring("all")} />
+                </Badge>
+              )}
+              {searchDate && (
+                <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 px-3 py-1">
+                  Datum: {new Date(searchDate).toLocaleDateString('de-DE')}
+                  <X className="ml-2 h-3 w-3 cursor-pointer" onClick={() => setSearchDate("")} />
+                </Badge>
+              )}
+              {searchTime && (
+                <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 px-3 py-1">
+                  Zeit: {searchTime}
+                  <X className="ml-2 h-3 w-3 cursor-pointer" onClick={() => setSearchTime("")} />
+                </Badge>
+              )}
+            </div>
+
+            {getActiveFiltersCount() > 0 && (
+              <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-foreground">
+                      {filteredEntries.length} {filteredEntries.length === 1 ? "Ergebnis" : "Ergebnisse"} gefunden
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      von {entries.length} gesamt
+                    </p>
+                  </div>
+                  <Badge variant="default" className="bg-primary text-primary-foreground text-lg px-4 py-2">
+                    {filteredEntries.length}
+                  </Badge>
+                </div>
               </div>
             )}
           </div>
