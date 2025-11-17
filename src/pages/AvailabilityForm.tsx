@@ -124,8 +124,8 @@ const AvailabilityForm = () => {
       const availabilityData = {
         user_id: userId,
         date: validated.date,
-        start_time: validated.startTime,
-        end_time: validated.endTime,
+        start_time: validated.startTime || null,
+        end_time: validated.endTime || null,
         shift_type: validated.shiftType || null,
         location: validated.location,
         is_recurring: validated.isRecurring,
