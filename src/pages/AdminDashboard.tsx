@@ -137,11 +137,37 @@ const AdminDashboard = () => {
     let filtered = [...entries];
 
     if (searchTerm) {
-      filtered = filtered.filter((entry) =>
-        `${entry.first_name} ${entry.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        entry.phone_number.includes(searchTerm) ||
-        entry.location.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      const search = searchTerm.toLowerCase();
+      filtered = filtered.filter((entry) => {
+        // Suche in allen relevanten Feldern
+        const name = `${entry.first_name || ''} ${entry.last_name || ''}`.toLowerCase();
+        const phone = entry.phone_number || '';
+        const location = (entry.location || '').toLowerCase();
+        const notes = (entry.notes || '').toLowerCase();
+        const shiftType = (entry.shift_type || '').toLowerCase();
+        const weekdays = (entry.weekdays || '').toLowerCase();
+        const guardId = (entry.guard_id_number || '').toLowerCase();
+        const ePin = (entry.e_pin_number || '').toLowerCase();
+        const mobile = (entry.mobile_deployable || '').toLowerCase();
+        const date = entry.date || '';
+        const endDate = entry.end_date || '';
+        const startTime = entry.start_time || '';
+        const endTime = entry.end_time || '';
+        
+        return name.includes(search) ||
+               phone.includes(searchTerm) ||
+               location.includes(search) ||
+               notes.includes(search) ||
+               shiftType.includes(search) ||
+               weekdays.includes(search) ||
+               guardId.includes(search) ||
+               ePin.includes(search) ||
+               mobile.includes(search) ||
+               date.includes(searchTerm) ||
+               endDate.includes(searchTerm) ||
+               startTime.includes(searchTerm) ||
+               endTime.includes(searchTerm);
+      });
     }
 
     if (filterShiftType !== "all") {
