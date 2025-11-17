@@ -17,13 +17,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 const availabilitySchema = z.object({
   date: z.string().min(1, "Date is required"),
-  startTime: z.string().min(1, "Start time is required"),
-  endTime: z.string().min(1, "End time is required"),
+  endDate: z.string().min(1, "End date is required"),
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
   shiftType: z.string().optional(),
   location: z.string().min(1, "Location is required"),
   isRecurring: z.boolean(),
   weekdays: z.string().optional(),
-  endDate: z.string().optional(),
   mobileDeployable: z.string().optional(),
   notes: z.string().max(500).optional(),
 });
@@ -195,7 +195,7 @@ const AvailabilityForm = () => {
               <div className="space-y-2">
                 <Label htmlFor="date" className="text-foreground flex items-center">
                   <Calendar className="w-4 h-4 mr-2 text-secondary" />
-                  {t("form.fromDate")}
+                  Von Datum
                 </Label>
                 <Input
                   id="date"
@@ -208,15 +208,15 @@ const AvailabilityForm = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="location" className="text-foreground flex items-center">
-                  <MapPin className="w-4 h-4 mr-2 text-secondary" />
-                  {t("form.preferredLocation")}
+                <Label htmlFor="endDate" className="text-foreground flex items-center">
+                  <Calendar className="w-4 h-4 mr-2 text-secondary" />
+                  Bis Datum
                 </Label>
                 <Input
-                  id="location"
-                  type="text"
-                  value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  id="endDate"
+                  type="date"
+                  value={formData.endDate}
+                  onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                   className="bg-muted border-border text-foreground"
                   required
                 />
@@ -227,7 +227,7 @@ const AvailabilityForm = () => {
               <div className="space-y-2">
                 <Label htmlFor="startTime" className="text-foreground flex items-center">
                   <Clock className="w-4 h-4 mr-2 text-secondary" />
-                  {t("form.startTime")}
+                  Startzeit (optional)
                 </Label>
                 <Input
                   id="startTime"
@@ -235,14 +235,13 @@ const AvailabilityForm = () => {
                   value={formData.startTime}
                   onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
                   className="bg-muted border-border text-foreground"
-                  required
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="endTime" className="text-foreground flex items-center">
                   <Clock className="w-4 h-4 mr-2 text-secondary" />
-                  {t("form.endTime")}
+                  Endzeit (optional)
                 </Label>
                 <Input
                   id="endTime"
@@ -250,7 +249,6 @@ const AvailabilityForm = () => {
                   value={formData.endTime}
                   onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
                   className="bg-muted border-border text-foreground"
-                  required
                 />
               </div>
             </div>
@@ -270,43 +268,28 @@ const AvailabilityForm = () => {
               </div>
 
               {formData.isRecurring && (
-                <>
-                  <div className="space-y-2">
-                    <Label className="text-foreground">{t("form.selectDays")}</Label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map(
-                        (day) => (
-                          <div key={day} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={day}
-                              checked={selectedWeekdays.includes(day)}
-                              onCheckedChange={() => handleWeekdayToggle(day)}
-                            />
-                            <Label
-                              htmlFor={day}
-                              className="text-sm text-foreground cursor-pointer"
-                            >
-                              {t(`days.${day}`)}
-                            </Label>
-                          </div>
-                        )
-                      )}
-                    </div>
+                <div className="space-y-2">
+                  <Label className="text-foreground">{t("form.selectDays")}</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map(
+                      (day) => (
+                        <div key={day} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={day}
+                            checked={selectedWeekdays.includes(day)}
+                            onCheckedChange={() => handleWeekdayToggle(day)}
+                          />
+                          <Label
+                            htmlFor={day}
+                            className="text-sm text-foreground cursor-pointer"
+                          >
+                            {t(`days.${day}`)}
+                          </Label>
+                        </div>
+                      )
+                    )}
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="endDate" className="text-foreground">
-                      {t("form.endDate")}
-                    </Label>
-                    <Input
-                      id="endDate"
-                      type="date"
-                      value={formData.endDate}
-                      onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                      className="bg-muted border-border text-foreground"
-                    />
-                  </div>
-                </>
+                </div>
               )}
             </div>
 
@@ -349,6 +332,21 @@ const AvailabilityForm = () => {
                   <SelectItem value="flexible">Flexibel</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="location" className="text-foreground flex items-center">
+                <MapPin className="w-4 h-4 mr-2 text-secondary" />
+                Bevorzugter Einsatzort
+              </Label>
+              <Input
+                id="location"
+                type="text"
+                value={formData.location}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                className="bg-muted border-border text-foreground"
+                required
+              />
             </div>
 
             <div className="space-y-2">
