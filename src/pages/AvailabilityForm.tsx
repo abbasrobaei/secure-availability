@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const availabilitySchema = z.object({
   date: z.string().min(1, "Date is required"),
@@ -330,6 +331,24 @@ const AvailabilityForm = () => {
                   </Label>
                 </div>
               </RadioGroup>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="shiftType" className="text-foreground">Schichttyp</Label>
+              <Select
+                value={formData.shiftType}
+                onValueChange={(value) => setFormData({ ...formData, shiftType: value })}
+              >
+                <SelectTrigger className="bg-muted border-border text-foreground">
+                  <SelectValue placeholder="Schichttyp auswählen" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="earlyShift">Frühschicht</SelectItem>
+                  <SelectItem value="lateShift">Spätschicht</SelectItem>
+                  <SelectItem value="nightShift">Nachtschicht</SelectItem>
+                  <SelectItem value="flexible">Flexibel</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">

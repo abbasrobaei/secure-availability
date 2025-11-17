@@ -722,7 +722,30 @@ const AdminDashboard = () => {
                           </Badge>
                         )}
                       </TableCell>
-                      <TableCell className="text-foreground text-sm">{entry.weekdays || "-"}</TableCell>
+                      <TableCell className="text-foreground text-sm">
+                        {entry.weekdays ? (
+                          <div className="space-y-1">
+                            {entry.weekdays.split(',').map((day: string) => {
+                              const dayMap: Record<string, string> = {
+                                'monday': 'Mo',
+                                'tuesday': 'Di',
+                                'wednesday': 'Mi',
+                                'thursday': 'Do',
+                                'friday': 'Fr',
+                                'saturday': 'Sa',
+                                'sunday': 'So'
+                              };
+                              return (
+                                <Badge key={day} variant="outline" className="mr-1 text-xs">
+                                  {dayMap[day] || day}
+                                </Badge>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-foreground">{entry.location}</TableCell>
                       <TableCell>
                         {entry.mobile_deployable === "yes" ? (
