@@ -67,34 +67,85 @@ export type Database = {
       }
       profiles: {
         Row: {
+          bank_name: string | null
+          birth_date: string | null
+          birth_place: string | null
+          city: string | null
           created_at: string | null
           e_pin_number: string | null
           email: string
           first_name: string | null
           guard_id_number: string | null
+          health_insurance: string | null
+          house_number: string | null
+          iban: string | null
           id: string
           last_name: string | null
+          nationality: string | null
+          onboarding_completed: boolean | null
+          personal_data_completed: boolean | null
           phone_number: string | null
+          postal_code: string | null
+          rules_acknowledged: boolean | null
+          salutation: string | null
+          social_security_number: string | null
+          street: string | null
+          tax_class: string | null
+          tax_id: string | null
         }
         Insert: {
+          bank_name?: string | null
+          birth_date?: string | null
+          birth_place?: string | null
+          city?: string | null
           created_at?: string | null
           e_pin_number?: string | null
           email: string
           first_name?: string | null
           guard_id_number?: string | null
+          health_insurance?: string | null
+          house_number?: string | null
+          iban?: string | null
           id: string
           last_name?: string | null
+          nationality?: string | null
+          onboarding_completed?: boolean | null
+          personal_data_completed?: boolean | null
           phone_number?: string | null
+          postal_code?: string | null
+          rules_acknowledged?: boolean | null
+          salutation?: string | null
+          social_security_number?: string | null
+          street?: string | null
+          tax_class?: string | null
+          tax_id?: string | null
         }
         Update: {
+          bank_name?: string | null
+          birth_date?: string | null
+          birth_place?: string | null
+          city?: string | null
           created_at?: string | null
           e_pin_number?: string | null
           email?: string
           first_name?: string | null
           guard_id_number?: string | null
+          health_insurance?: string | null
+          house_number?: string | null
+          iban?: string | null
           id?: string
           last_name?: string | null
+          nationality?: string | null
+          onboarding_completed?: boolean | null
+          personal_data_completed?: boolean | null
           phone_number?: string | null
+          postal_code?: string | null
+          rules_acknowledged?: boolean | null
+          salutation?: string | null
+          social_security_number?: string | null
+          street?: string | null
+          tax_class?: string | null
+          tax_id?: string | null
         }
         Relationships: []
       }

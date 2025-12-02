@@ -22,6 +22,7 @@ import {
 interface Profile {
   first_name: string | null;
   last_name: string | null;
+  onboarding_completed: boolean | null;
 }
 
 interface Availability {
@@ -73,13 +74,18 @@ const UserDashboard = () => {
   const loadProfile = async (userId: string) => {
     const { data, error } = await supabase
       .from("profiles")
-      .select("first_name, last_name")
+      .select("first_name, last_name, onboarding_completed")
       .eq("id", userId)
       .single();
 
     if (error) {
       console.error("Error loading profile:", error);
     } else {
+      // Check if onboarding is completed
+      if (!data.onboarding_completed) {
+        navigate("/onboarding");
+        return;
+      }
       setProfile(data);
     }
   };

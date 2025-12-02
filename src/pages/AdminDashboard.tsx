@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { LogOut, Download, Trash2, Search, Filter, Calendar, Clock, UserPlus, Mail, Lock, User, MessageCircle, X, RefreshCw } from "lucide-react";
+import { LogOut, Download, Trash2, Search, Filter, Calendar, Clock, UserPlus, Mail, Lock, User, MessageCircle, X, RefreshCw, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Badge } from "@/components/ui/badge";
@@ -359,6 +359,14 @@ const AdminDashboard = () => {
           </div>
           <div className="flex gap-2">
             <LanguageSwitcher />
+            <Button 
+              variant="outline" 
+              onClick={() => navigate("/admin/employees")}
+              className="border-border"
+            >
+              <Users className="mr-2 h-4 w-4" />
+              Mitarbeiter
+            </Button>
             <Button 
               variant="secondary" 
               onClick={() => setShowCreateAdmin(!showCreateAdmin)}
