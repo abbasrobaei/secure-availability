@@ -125,6 +125,19 @@ const Onboarding = () => {
 
     setUserId(session.user.id);
 
+    // Check if user is admin - admins skip onboarding
+    const { data: roleData } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", session.user.id)
+      .eq("role", "admin")
+      .single();
+
+    if (roleData) {
+      navigate("/admin/dashboard");
+      return;
+    }
+
     const { data: profile, error } = await supabase
       .from("profiles")
       .select("first_name, last_name, onboarding_completed, personal_data_completed, rules_acknowledged")
