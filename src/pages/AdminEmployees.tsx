@@ -99,10 +99,13 @@ const AdminEmployees = () => {
     navigate("/login");
   };
 
-  const downloadPdf = async (userId: string, type: "personalstammdaten" | "strafe_katalog") => {
+  const downloadPdf = async (userId: string, type: "personalstammdaten" | "strafe_katalog", firstName: string | null, lastName: string | null) => {
     setDownloadingPdf(`${userId}-${type}`);
     try {
-      const fileName = `${userId}/${type}_${userId}.pdf`;
+      const name = `${firstName || ""} ${lastName || ""}`.trim();
+      const fileName = type === "personalstammdaten" 
+        ? `${userId}/Personalstammdaten_${name}.pdf`
+        : `${userId}/Strafe_${name}.pdf`;
       
       const { data, error } = await supabase.storage
         .from("onboarding-documents")
@@ -121,7 +124,9 @@ const AdminEmployees = () => {
       const url = URL.createObjectURL(data);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${type}_${userId}.pdf`;
+      a.download = type === "personalstammdaten" 
+        ? `Personalstammdaten_${name}.pdf`
+        : `Strafe_${name}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -275,7 +280,7 @@ const AdminEmployees = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => downloadPdf(emp.id, "personalstammdaten")}
+                              onClick={() => downloadPdf(emp.id, "personalstammdaten", emp.first_name, emp.last_name)}
                               disabled={!emp.personal_data_completed || downloadingPdf === `${emp.id}-personalstammdaten`}
                               className="border-border text-xs"
                             >
@@ -285,7 +290,7 @@ const AdminEmployees = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => downloadPdf(emp.id, "strafe_katalog")}
+                              onClick={() => downloadPdf(emp.id, "strafe_katalog", emp.first_name, emp.last_name)}
                               disabled={!emp.rules_acknowledged || downloadingPdf === `${emp.id}-strafe_katalog`}
                               className="border-border text-xs"
                             >

@@ -226,7 +226,7 @@ const Onboarding = () => {
       // Upload PDF to storage
       const { error: uploadError } = await supabase.storage
         .from("onboarding-documents")
-        .upload(`${userId}/personalstammdaten_${userId}.pdf`, pdfBlob, {
+        .upload(`${userId}/Personalstammdaten_${personalData.firstName} ${personalData.lastName}.pdf`, pdfBlob, {
           contentType: "application/pdf",
           upsert: true,
         });
@@ -293,9 +293,11 @@ const Onboarding = () => {
       });
 
       // Upload PDF to storage
+      const firstName = personalData.firstName || userFullName?.split(" ")[0] || "";
+      const lastName = personalData.lastName || userFullName?.split(" ").slice(1).join(" ") || "";
       const { error: uploadError } = await supabase.storage
         .from("onboarding-documents")
-        .upload(`${userId}/strafe_katalog_${userId}.pdf`, pdfBlob, {
+        .upload(`${userId}/Strafe_${firstName} ${lastName}.pdf`, pdfBlob, {
           contentType: "application/pdf",
           upsert: true,
         });
