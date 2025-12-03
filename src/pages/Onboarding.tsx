@@ -44,6 +44,37 @@ const nationalities = [
   "Afghanisch", "Irakisch", "Iranisch", "Ukrainisch", "Andere"
 ];
 
+const healthInsuranceOptions = [
+  "AOK Baden-Württemberg",
+  "AOK Bayern",
+  "AOK Bremen/Bremerhaven",
+  "AOK Hessen",
+  "AOK Niedersachsen",
+  "AOK Nordost",
+  "AOK NordWest",
+  "AOK PLUS",
+  "AOK Rheinland/Hamburg",
+  "AOK Rheinland-Pfalz/Saarland",
+  "AOK Sachsen-Anhalt",
+  "BARMER",
+  "Techniker Krankenkasse (TK)",
+  "DAK Gesundheit",
+  "HEK – Hanseatische Krankenkasse",
+  "hkk Krankenkasse",
+  "KKH Kaufmännische Krankenkasse",
+  "SBK (Siemens-Betriebskrankenkasse)",
+  "BERGISCHE Krankenkasse",
+  "Audi BKK",
+  "BAHN-BKK",
+  "BKK Public",
+  "BKK Linde",
+  "BKK Freudenberg",
+  "BKK exklusiv",
+  "BIG direkt gesund",
+  "IKK classic",
+  "IKK gesund plus",
+];
+
 const Onboarding = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
@@ -507,11 +538,16 @@ const Onboarding = () => {
 
                 <div className="space-y-2">
                   <Label className="text-foreground">Krankenversicherung *</Label>
-                  <Input
-                    value={personalData.healthInsurance}
-                    onChange={e => setPersonalData(p => ({ ...p, healthInsurance: e.target.value }))}
-                    className={cn("bg-muted border-border", errors.healthInsurance && "border-destructive")}
-                  />
+                  <Select value={personalData.healthInsurance} onValueChange={v => setPersonalData(p => ({ ...p, healthInsurance: v }))}>
+                    <SelectTrigger className={cn("bg-muted border-border", errors.healthInsurance && "border-destructive")}>
+                      <SelectValue placeholder="Auswählen" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {healthInsuranceOptions.map(insurance => (
+                        <SelectItem key={insurance} value={insurance}>{insurance}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {errors.healthInsurance && <p className="text-xs text-destructive">{errors.healthInsurance}</p>}
                 </div>
               </div>
