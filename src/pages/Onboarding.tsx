@@ -292,7 +292,7 @@ const Onboarding = () => {
       <div className="container mx-auto max-w-3xl">
         {/* Progress Header */}
         <Card className="p-6 bg-card border-border mb-6">
-          <h1 className="text-2xl font-bold text-foreground mb-4">Willkommen bei Lockaly</h1>
+          <h1 className="text-2xl font-bold text-foreground mb-4">Willkommen bei Parsec</h1>
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>Fortschritt</span>
@@ -385,6 +385,9 @@ const Onboarding = () => {
                         initialFocus
                         className="pointer-events-auto"
                         locale={de}
+                        captionLayout="dropdown-buttons"
+                        fromYear={1940}
+                        toYear={new Date().getFullYear()}
                       />
                     </PopoverContent>
                   </Popover>
