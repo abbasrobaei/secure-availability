@@ -15,11 +15,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { format, isSameDay, isWithinInterval, startOfDay, endOfDay } from "date-fns";
+import { format, isSameDay, isWithinInterval, startOfDay, endOfDay, isBefore, startOfToday } from "date-fns";
 import { de } from "date-fns/locale";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type AvailabilityType = "single" | "range" | "recurring" | "weekend" | "weekdays";
 
@@ -41,57 +42,16 @@ const weekdayOptions = [
   { value: "sunday", label: "So", fullLabel: "Sonntag" },
 ];
 
+// Cities with more than 500,000 inhabitants within 200km of Düsseldorf
 const locationOptions = [
   "Düsseldorf",
   "Köln",
   "Essen",
   "Dortmund",
   "Duisburg",
-  "Bochum",
-  "Wuppertal",
-  "Mönchengladbach",
-  "Krefeld",
-  "Oberhausen",
-  "Gelsenkirchen",
-  "Bonn",
-  "Münster",
-  "Aachen",
-  "Leverkusen",
-  "Neuss",
-  "Moers",
-  "Solingen",
-  "Remscheid",
-  "Hagen",
-  "Hamm",
-  "Mülheim an der Ruhr",
-  "Herne",
-  "Bergisch Gladbach",
-  "Ratingen",
-  "Velbert",
-  "Witten",
-  "Recklinghausen",
-  "Bottrop",
-  "Marl",
-  "Lünen",
-  "Iserlohn",
-  "Gladbeck",
-  "Dinslaken",
-  "Viersen",
-  "Kerpen",
-  "Dorsten",
-  "Troisdorf",
-  "Arnsberg",
-  "Siegen",
-  "Lüdenscheid",
-  "Detmold",
-  "Paderborn",
-  "Gütersloh",
-  "Minden",
-  "Herford",
-  "Bielefeld",
-  "Venlo (NL)",
-  "Eindhoven (NL)",
-  "Nijmegen (NL)",
+  "Frankfurt am Main",
+  "Amsterdam (NL)",
+  "Rotterdam (NL)",
 ];
 
 const availabilitySchema = z.object({
@@ -117,12 +77,13 @@ const AvailabilityForm = () => {
   
   const [availabilityType, setAvailabilityType] = useState<AvailabilityType>("single");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [selectedEndDate, setSelectedEndDate] = useState<Date | undefined>(undefined);
   const [selectedWeekdays, setSelectedWeekdays] = useState<string[]>([]);
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [shiftType, setShiftType] = useState("");
-  const [location, setLocation] = useState("");
+  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [mobileDeployable, setMobileDeployable] = useState("");
   const [notes, setNotes] = useState("");
   
@@ -176,7 +137,7 @@ const AvailabilityForm = () => {
       setStartTime(data.start_time || "");
       setEndTime(data.end_time || "");
       setShiftType(data.shift_type || "");
-      setLocation(data.location);
+      setSelectedLocations(data.location ? data.location.split(",") : []);
       setMobileDeployable(data.mobile_deployable || "");
       setNotes(data.notes || "");
       
@@ -215,8 +176,18 @@ const AvailabilityForm = () => {
       return;
     }
 
-    if (!selectedDate) {
+    if (availabilityType === "range" && selectedDates.length === 0) {
+      toast.error("Bitte wählen Sie mindestens ein Datum aus");
+      return;
+    }
+
+    if (availabilityType !== "range" && !selectedDate) {
       toast.error("Bitte wählen Sie ein Datum aus");
+      return;
+    }
+
+    if (selectedLocations.length === 0) {
+      toast.error("Bitte wählen Sie mindestens einen Einsatzort aus");
       return;
     }
 
@@ -224,8 +195,18 @@ const AvailabilityForm = () => {
       const isRecurring = availabilityType === "recurring" || availabilityType === "weekend" || availabilityType === "weekdays";
       const weekdaysString = isRecurring ? selectedWeekdays.join(",") : null;
       
-      const dateStr = format(selectedDate, "yyyy-MM-dd");
-      const endDateStr = selectedEndDate ? format(selectedEndDate, "yyyy-MM-dd") : dateStr;
+      // For range type, use the sorted selected dates
+      let dateStr: string;
+      let endDateStr: string;
+      
+      if (availabilityType === "range" && selectedDates.length > 0) {
+        const sortedDates = [...selectedDates].sort((a, b) => a.getTime() - b.getTime());
+        dateStr = format(sortedDates[0], "yyyy-MM-dd");
+        endDateStr = format(sortedDates[sortedDates.length - 1], "yyyy-MM-dd");
+      } else {
+        dateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
+        endDateStr = dateStr;
+      }
 
       const dataToValidate = {
         date: dateStr,
@@ -233,7 +214,7 @@ const AvailabilityForm = () => {
         startTime: startTime || undefined,
         endTime: endTime || undefined,
         shiftType: shiftType || undefined,
-        location,
+        location: selectedLocations.join(","),
         isRecurring,
         weekdays: weekdaysString || undefined,
         mobileDeployable: mobileDeployable || undefined,
@@ -307,9 +288,28 @@ const AvailabilityForm = () => {
     return "";
   };
 
-  const showDateRange = availabilityType !== "single";
+  const showDatePicker = availabilityType === "single";
+  const showMultipleDatePicker = availabilityType === "range";
   const showWeekdays = availabilityType === "recurring";
   const isWeekdaysDisabled = availabilityType === "weekend" || availabilityType === "weekdays";
+  const today = startOfToday();
+
+  const handleLocationToggle = (loc: string) => {
+    setSelectedLocations(prev =>
+      prev.includes(loc) ? prev.filter(l => l !== loc) : [...prev, loc]
+    );
+  };
+
+  const handleMultipleDateSelect = (date: Date | undefined) => {
+    if (!date) return;
+    setSelectedDates(prev => {
+      const exists = prev.some(d => isSameDay(d, date));
+      if (exists) {
+        return prev.filter(d => !isSameDay(d, date));
+      }
+      return [...prev, date];
+    });
+  };
 
   return (
     <TooltipProvider>
@@ -379,12 +379,12 @@ const AvailabilityForm = () => {
                 )}
               </div>
 
-              {/* Calendar Date Selection */}
-              <div className={cn("grid gap-4", showDateRange ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1")}>
+              {/* Calendar Date Selection - Single Day */}
+              {showDatePicker && (
                 <div className="space-y-2">
                   <Label className="text-foreground flex items-center gap-2">
                     <CalendarIcon className="w-4 h-4 text-secondary" />
-                    {showDateRange ? "Von Datum" : "Datum"}
+                    Datum
                   </Label>
                   <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                     <PopoverTrigger asChild>
@@ -405,9 +405,10 @@ const AvailabilityForm = () => {
                         selected={selectedDate}
                         onSelect={(date) => {
                           setSelectedDate(date);
-                          if (!showDateRange) setCalendarOpen(false);
+                          setCalendarOpen(false);
                         }}
                         locale={de}
+                        disabled={(date) => isBefore(date, today)}
                         className="pointer-events-auto"
                         modifiersClassNames={{
                           selected: availabilityTypeConfig[availabilityType].bgColor,
@@ -416,43 +417,63 @@ const AvailabilityForm = () => {
                     </PopoverContent>
                   </Popover>
                 </div>
+              )}
 
-                {showDateRange && (
-                  <div className="space-y-2">
-                    <Label className="text-foreground flex items-center gap-2">
-                      <CalendarIcon className="w-4 h-4 text-secondary" />
-                      Bis Datum
-                    </Label>
-                    <Popover open={endCalendarOpen} onOpenChange={setEndCalendarOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !selectedEndDate && "text-muted-foreground"
-                          )}
+              {/* Calendar Date Selection - Multiple Days */}
+              {showMultipleDatePicker && (
+                <div className="space-y-2">
+                  <Label className="text-foreground flex items-center gap-2">
+                    <CalendarIcon className="w-4 h-4 text-secondary" />
+                    Tage auswählen (mehrfach möglich)
+                  </Label>
+                  <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          selectedDates.length === 0 && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {selectedDates.length > 0 
+                          ? `${selectedDates.length} Tag(e) ausgewählt` 
+                          : "Tage auswählen"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 z-50" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={undefined}
+                        onSelect={handleMultipleDateSelect}
+                        locale={de}
+                        disabled={(date) => isBefore(date, today)}
+                        className="pointer-events-auto"
+                        modifiers={{
+                          selected: selectedDates,
+                        }}
+                        modifiersClassNames={{
+                          selected: availabilityTypeConfig[availabilityType].bgColor,
+                        }}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  {selectedDates.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {selectedDates.sort((a, b) => a.getTime() - b.getTime()).map((date) => (
+                        <Badge
+                          key={date.toISOString()}
+                          variant="secondary"
+                          className="cursor-pointer"
+                          onClick={() => handleMultipleDateSelect(date)}
                         >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {selectedEndDate ? format(selectedEndDate, "PPP", { locale: de }) : "Enddatum auswählen"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 z-50" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={selectedEndDate}
-                          onSelect={(date) => {
-                            setSelectedEndDate(date);
-                            setEndCalendarOpen(false);
-                          }}
-                          locale={de}
-                          disabled={(date) => selectedDate ? date < selectedDate : false}
-                          className="pointer-events-auto"
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                )}
-              </div>
+                          {format(date, "dd.MM.yyyy", { locale: de })} ×
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Weekday Selection for Recurring */}
               {(showWeekdays || isWeekdaysDisabled) && (
@@ -562,28 +583,43 @@ const AvailabilityForm = () => {
                   <SelectContent className="bg-popover border-border z-50">
                     <SelectItem value="dayShift">Tagschicht</SelectItem>
                     <SelectItem value="nightShift">Nachtschicht</SelectItem>
+                    <SelectItem value="flexible">Flexibel</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              {/* Location */}
+              {/* Location - Multi-select */}
               <div className="space-y-2">
-                <Label htmlFor="location" className="text-foreground flex items-center gap-2">
+                <Label className="text-foreground flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-secondary" />
-                  Bevorzugter Einsatzort
+                  Bevorzugter Einsatzort (mehrfach möglich)
                 </Label>
-                <Select value={location} onValueChange={setLocation}>
-                  <SelectTrigger className="bg-muted border-border text-foreground">
-                    <SelectValue placeholder="Einsatzort auswählen" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover border-border z-50 max-h-[300px]">
-                    {locationOptions.map((loc) => (
-                      <SelectItem key={loc} value={loc}>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 bg-muted rounded-lg border border-border">
+                  {locationOptions.map((loc) => (
+                    <div key={loc} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`loc-${loc}`}
+                        checked={selectedLocations.includes(loc)}
+                        onCheckedChange={() => handleLocationToggle(loc)}
+                      />
+                      <Label
+                        htmlFor={`loc-${loc}`}
+                        className="text-sm text-foreground cursor-pointer"
+                      >
                         {loc}
-                      </SelectItem>
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+                {selectedLocations.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {selectedLocations.map((loc) => (
+                      <Badge key={loc} variant="secondary" className="text-xs">
+                        {loc}
+                      </Badge>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </div>
+                )}
               </div>
 
               {/* Notes */}
@@ -606,7 +642,7 @@ const AvailabilityForm = () => {
               <Button
                 type="submit"
                 className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground font-semibold"
-                disabled={loading || !selectedDate || !location}
+                disabled={loading || (availabilityType === "range" ? selectedDates.length === 0 : !selectedDate) || selectedLocations.length === 0}
                 size="lg"
               >
                 <Save className="mr-2 h-5 w-5" />
