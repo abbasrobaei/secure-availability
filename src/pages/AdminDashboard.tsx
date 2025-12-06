@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { 
   LogOut, Download, Trash2, Search, Filter, Calendar, Clock, UserPlus, Mail, Lock, User, 
   MessageCircle, X, RefreshCw, Users, ChevronUp, ChevronDown, MapPin, Phone, Briefcase,
-  CalendarDays, RotateCcw, Car, FileText, Eye, EyeOff, ArrowUpDown
+  CalendarDays, RotateCcw, Car, FileText, Eye, EyeOff, ArrowUpDown, LayoutGrid, List
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -20,6 +20,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
+import { AvailabilityCalendar } from "@/components/admin/AvailabilityCalendar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type SortField = "name" | "date" | "location" | "shift_type" | "created_at";
 type SortDirection = "asc" | "desc";
@@ -68,6 +70,7 @@ const AdminDashboard = () => {
   // View states
   const [showFilters, setShowFilters] = useState(true);
   const [compactView, setCompactView] = useState(false);
+  const [viewMode, setViewMode] = useState<"table" | "calendar">("table");
   
   // Admin creation
   const [showCreateAdmin, setShowCreateAdmin] = useState(false);
@@ -651,6 +654,25 @@ const AdminDashboard = () => {
                   </div>
                 </div>
                 <div className="flex gap-2 flex-wrap">
+                  {/* View Mode Toggle */}
+                  <div className="flex border border-border rounded-md overflow-hidden">
+                    <Button 
+                      variant={viewMode === "table" ? "default" : "ghost"} 
+                      size="sm"
+                      onClick={() => setViewMode("table")}
+                      className={`rounded-none ${viewMode === "table" ? 'bg-primary text-primary-foreground' : ''}`}
+                    >
+                      <List className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant={viewMode === "calendar" ? "default" : "ghost"} 
+                      size="sm"
+                      onClick={() => setViewMode("calendar")}
+                      className={`rounded-none ${viewMode === "calendar" ? 'bg-primary text-primary-foreground' : ''}`}
+                    >
+                      <LayoutGrid className="h-4 w-4" />
+                    </Button>
+                  </div>
                   <Button 
                     variant="outline" 
                     size="sm"
@@ -660,14 +682,16 @@ const AdminDashboard = () => {
                     {showFilters ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
                     Filter {showFilters ? 'ausblenden' : 'anzeigen'}
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setCompactView(!compactView)}
-                    className="border-border"
-                  >
-                    {compactView ? 'Normale Ansicht' : 'Kompakte Ansicht'}
-                  </Button>
+                  {viewMode === "table" && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setCompactView(!compactView)}
+                      className="border-border"
+                    >
+                      {compactView ? 'Normale Ansicht' : 'Kompakte Ansicht'}
+                    </Button>
+                  )}
                   {getActiveFiltersCount() > 0 && (
                     <Button 
                       onClick={resetAllFilters} 
@@ -873,209 +897,215 @@ const AdminDashboard = () => {
             </div>
           </Card>
 
-          {/* Results Table */}
-          <Card className="bg-card border-border overflow-hidden">
-            {loading ? (
-              <div className="text-center py-12 text-muted-foreground">Lädt...</div>
-            ) : filteredEntries.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <FileText className="h-12 w-12 mx-auto mb-4 opacity-30" />
-                <p>Keine Einträge gefunden</p>
-                {getActiveFiltersCount() > 0 && (
-                  <Button variant="link" onClick={resetAllFilters} className="mt-2 text-primary">
-                    Filter zurücksetzen
-                  </Button>
-                )}
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-border bg-muted/50">
-                      <TableHead 
-                        className="text-foreground cursor-pointer hover:bg-muted/80 transition-colors"
-                        onClick={() => handleSort("name")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Name <SortIcon field="name" />
-                        </div>
-                      </TableHead>
-                      <TableHead className="text-foreground">Kontakt</TableHead>
-                      <TableHead 
-                        className="text-foreground cursor-pointer hover:bg-muted/80 transition-colors"
-                        onClick={() => handleSort("date")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Zeitraum <SortIcon field="date" />
-                        </div>
-                      </TableHead>
-                      {!compactView && <TableHead className="text-foreground">Zeit</TableHead>}
-                      <TableHead 
-                        className="text-foreground cursor-pointer hover:bg-muted/80 transition-colors"
-                        onClick={() => handleSort("shift_type")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Schicht <SortIcon field="shift_type" />
-                        </div>
-                      </TableHead>
-                      {!compactView && <TableHead className="text-foreground">Wochentage</TableHead>}
-                      <TableHead 
-                        className="text-foreground cursor-pointer hover:bg-muted/80 transition-colors"
-                        onClick={() => handleSort("location")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Standort <SortIcon field="location" />
-                        </div>
-                      </TableHead>
-                      <TableHead className="text-foreground text-center">Mobil</TableHead>
-                      {!compactView && <TableHead className="text-foreground">Bemerkungen</TableHead>}
-                      <TableHead className="text-foreground text-right">Aktionen</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredEntries.map((entry) => (
-                      <TableRow key={entry.id} className="border-border hover:bg-muted/30 transition-colors">
-                        <TableCell>
-                          <div className="font-medium text-foreground">
-                            {entry.first_name} {entry.last_name}
+          {/* View Content */}
+          {viewMode === "calendar" ? (
+            <Card className="p-6 bg-card border-border">
+              <AvailabilityCalendar entries={filteredEntries} />
+            </Card>
+          ) : (
+            <Card className="bg-card border-border overflow-hidden">
+              {loading ? (
+                <div className="text-center py-12 text-muted-foreground">Lädt...</div>
+              ) : filteredEntries.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <FileText className="h-12 w-12 mx-auto mb-4 opacity-30" />
+                  <p>Keine Einträge gefunden</p>
+                  {getActiveFiltersCount() > 0 && (
+                    <Button variant="link" onClick={resetAllFilters} className="mt-2 text-primary">
+                      Filter zurücksetzen
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-border bg-muted/50">
+                        <TableHead 
+                          className="text-foreground cursor-pointer hover:bg-muted/80 transition-colors"
+                          onClick={() => handleSort("name")}
+                        >
+                          <div className="flex items-center gap-1">
+                            Name <SortIcon field="name" />
                           </div>
-                          {entry.guard_id_number && (
-                            <div className="text-xs text-muted-foreground">ID: {entry.guard_id_number}</div>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-foreground">{entry.phone_number}</span>
-                            {entry.phone_number && (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <a
-                                    href={`https://wa.me/${entry.phone_number.replace(/\D/g, '')}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-green-500 hover:text-green-400"
-                                  >
-                                    <MessageCircle className="h-4 w-4" />
-                                  </a>
-                                </TooltipTrigger>
-                                <TooltipContent>WhatsApp öffnen</TooltipContent>
-                              </Tooltip>
-                            )}
+                        </TableHead>
+                        <TableHead className="text-foreground">Kontakt</TableHead>
+                        <TableHead 
+                          className="text-foreground cursor-pointer hover:bg-muted/80 transition-colors"
+                          onClick={() => handleSort("date")}
+                        >
+                          <div className="flex items-center gap-1">
+                            Zeitraum <SortIcon field="date" />
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-foreground">
-                              {formatDateRange(entry.date, entry.end_date)}
-                            </span>
-                            {entry.is_recurring && (
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <Badge variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/20 text-xs">
-                                    <RotateCcw className="h-3 w-3" />
-                                  </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent>Wiederkehrend</TooltipContent>
-                              </Tooltip>
-                            )}
+                        </TableHead>
+                        {!compactView && <TableHead className="text-foreground">Zeit</TableHead>}
+                        <TableHead 
+                          className="text-foreground cursor-pointer hover:bg-muted/80 transition-colors"
+                          onClick={() => handleSort("shift_type")}
+                        >
+                          <div className="flex items-center gap-1">
+                            Schicht <SortIcon field="shift_type" />
                           </div>
-                        </TableCell>
-                        {!compactView && (
-                          <TableCell className="text-sm text-foreground">
-                            {entry.start_time && entry.end_time 
-                              ? `${entry.start_time.substring(0, 5)} - ${entry.end_time.substring(0, 5)}`
-                              : <span className="text-muted-foreground">-</span>
-                            }
-                          </TableCell>
-                        )}
-                        <TableCell>
-                          {entry.shift_type && (
-                            <Badge 
-                              variant="secondary" 
-                              className={`text-xs ${
-                                entry.shift_type === 'earlyShift' ? 'bg-yellow-500/10 text-yellow-500' :
-                                entry.shift_type === 'lateShift' ? 'bg-orange-500/10 text-orange-500' :
-                                entry.shift_type === 'nightShift' ? 'bg-indigo-500/10 text-indigo-400' :
-                                'bg-primary/10 text-primary'
-                              }`}
-                            >
-                              {getShiftTypeLabel(entry.shift_type)}
-                            </Badge>
-                          )}
-                        </TableCell>
-                        {!compactView && (
-                          <TableCell>
-                            {entry.weekdays ? (
-                              <div className="flex gap-1 flex-wrap">
-                                {entry.weekdays.split(',').map((day: string) => {
-                                  const dayLabel = weekdayOptions.find(d => d.value === day)?.label || day;
-                                  return (
-                                    <Badge key={day} variant="outline" className="text-xs px-1.5 py-0">
-                                      {dayLabel}
-                                    </Badge>
-                                  );
-                                })}
-                              </div>
-                            ) : (
-                              <span className="text-muted-foreground">-</span>
-                            )}
-                          </TableCell>
-                        )}
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {entry.location.split(',').map((loc: string, idx: number) => (
-                              <Badge key={idx} variant="outline" className="text-xs">
-                                {loc.trim()}
-                              </Badge>
-                            ))}
+                        </TableHead>
+                        {!compactView && <TableHead className="text-foreground">Wochentage</TableHead>}
+                        <TableHead 
+                          className="text-foreground cursor-pointer hover:bg-muted/80 transition-colors"
+                          onClick={() => handleSort("location")}
+                        >
+                          <div className="flex items-center gap-1">
+                            Standort <SortIcon field="location" />
                           </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {entry.mobile_deployable === "yes" ? (
-                            <Badge className="bg-green-500/10 text-green-500 border-green-500/20">
-                              <Car className="h-3 w-3" />
-                            </Badge>
-                          ) : entry.mobile_deployable === "no" ? (
-                            <Badge variant="outline" className="border-muted-foreground/30 text-muted-foreground">
-                              ✗
-                            </Badge>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                        {!compactView && (
-                          <TableCell className="max-w-[200px]">
-                            {entry.notes ? (
-                              <Tooltip>
-                                <TooltipTrigger className="text-left">
-                                  <span className="text-sm text-muted-foreground truncate block">
-                                    {entry.notes.length > 30 ? entry.notes.substring(0, 30) + '...' : entry.notes}
-                                  </span>
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-sm">{entry.notes}</TooltipContent>
-                              </Tooltip>
-                            ) : (
-                              <span className="text-muted-foreground">-</span>
-                            )}
-                          </TableCell>
-                        )}
-                        <TableCell className="text-right">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleDelete(entry.id)}
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
+                        </TableHead>
+                        <TableHead className="text-foreground text-center">Mobil</TableHead>
+                        {!compactView && <TableHead className="text-foreground">Bemerkungen</TableHead>}
+                        <TableHead className="text-foreground text-right">Aktionen</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </Card>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredEntries.map((entry) => (
+                        <TableRow key={entry.id} className="border-border hover:bg-muted/30 transition-colors">
+                          <TableCell>
+                            <div className="font-medium text-foreground">
+                              {entry.first_name} {entry.last_name}
+                            </div>
+                            {entry.guard_id_number && (
+                              <div className="text-xs text-muted-foreground">ID: {entry.guard_id_number}</div>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-foreground">{entry.phone_number}</span>
+                              {entry.phone_number && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <a
+                                      href={`https://wa.me/${entry.phone_number.replace(/\D/g, '')}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-green-500 hover:text-green-400"
+                                    >
+                                      <MessageCircle className="h-4 w-4" />
+                                    </a>
+                                  </TooltipTrigger>
+                                  <TooltipContent>WhatsApp öffnen</TooltipContent>
+                                </Tooltip>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-foreground">
+                                {formatDateRange(entry.date, entry.end_date)}
+                              </span>
+                              {entry.is_recurring && (
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <Badge variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/20 text-xs">
+                                      <RotateCcw className="h-3 w-3" />
+                                    </Badge>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Wiederkehrend</TooltipContent>
+                                </Tooltip>
+                              )}
+                            </div>
+                          </TableCell>
+                          {!compactView && (
+                            <TableCell className="text-sm text-foreground">
+                              {entry.start_time && entry.end_time 
+                                ? `${entry.start_time.substring(0, 5)} - ${entry.end_time.substring(0, 5)}`
+                                : <span className="text-muted-foreground">-</span>
+                              }
+                            </TableCell>
+                          )}
+                          <TableCell>
+                            {entry.shift_type && (
+                              <Badge 
+                                variant="secondary" 
+                                className={`text-xs ${
+                                  entry.shift_type === 'earlyShift' ? 'bg-yellow-500/10 text-yellow-500' :
+                                  entry.shift_type === 'lateShift' ? 'bg-orange-500/10 text-orange-500' :
+                                  entry.shift_type === 'nightShift' ? 'bg-indigo-500/10 text-indigo-400' :
+                                  'bg-primary/10 text-primary'
+                                }`}
+                              >
+                                {getShiftTypeLabel(entry.shift_type)}
+                              </Badge>
+                            )}
+                          </TableCell>
+                          {!compactView && (
+                            <TableCell>
+                              {entry.weekdays ? (
+                                <div className="flex gap-1 flex-wrap">
+                                  {entry.weekdays.split(',').map((day: string) => {
+                                    const dayLabel = weekdayOptions.find(d => d.value === day)?.label || day;
+                                    return (
+                                      <Badge key={day} variant="outline" className="text-xs px-1.5 py-0">
+                                        {dayLabel}
+                                      </Badge>
+                                    );
+                                  })}
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
+                          )}
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                              {entry.location.split(',').map((loc: string, idx: number) => (
+                                <Badge key={idx} variant="outline" className="text-xs">
+                                  {loc.trim()}
+                                </Badge>
+                              ))}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {entry.mobile_deployable === "yes" ? (
+                              <Badge className="bg-green-500/10 text-green-500 border-green-500/20">
+                                <Car className="h-3 w-3" />
+                              </Badge>
+                            ) : entry.mobile_deployable === "no" ? (
+                              <Badge variant="outline" className="border-muted-foreground/30 text-muted-foreground">
+                                ✗
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          {!compactView && (
+                            <TableCell className="max-w-[200px]">
+                              {entry.notes ? (
+                                <Tooltip>
+                                  <TooltipTrigger className="text-left">
+                                    <span className="text-sm text-muted-foreground truncate block">
+                                      {entry.notes.length > 30 ? entry.notes.substring(0, 30) + '...' : entry.notes}
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-sm">{entry.notes}</TooltipContent>
+                                </Tooltip>
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
+                          )}
+                          <TableCell className="text-right">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDelete(entry.id)}
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </Card>
+          )}
         </main>
       </div>
     </TooltipProvider>
